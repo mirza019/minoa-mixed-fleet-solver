@@ -22,6 +22,15 @@ data/raw/minoa/*
 # Professor-provided challenge PDFs and validator binaries
 /minoa/
 /tools/
+!tools/
+tools/*
+!tools/minoa/
+tools/minoa/*
+!tools/minoa/desktopValidator/
+tools/minoa/desktopValidator/*
+!tools/minoa/desktopValidator/desktopValidator/
+tools/minoa/desktopValidator/desktopValidator/*
+!tools/minoa/desktopValidator/desktopValidator/desktopValidator.jar
 
 # Thesis, LaTeX, and documentation artifacts
 thesis-templates-master/
