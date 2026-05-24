@@ -1,0 +1,3313 @@
+{
+	"timeHorizon": [
+		27960,
+		36000,
+		43200,
+		51360
+	],
+	"nodes": [
+		{
+			"node": {
+				"nodeName": "node1",
+				"breakCapacity": 2,
+				"slowChargeCapacity": 1,
+				"fastChargeCapacity": 1,
+				"breakingTimes": [
+					{
+						"stoppingTime": {
+							"minStoppingTime": 120,
+							"maxStoppingTime": 7200
+						}
+					},
+					{
+						"stoppingTime": {
+							"minStoppingTime": 240,
+							"maxStoppingTime": 7200
+						}
+					},
+					{
+						"stoppingTime": {
+							"minStoppingTime": 120,
+							"maxStoppingTime": 7200
+						}
+					}
+				]
+			}
+		},
+		{
+			"node": {
+				"nodeName": "node2",
+				"breakCapacity": 1,
+				"slowChargeCapacity": 0,
+				"fastChargeCapacity": 0,
+				"breakingTimes": [
+					{
+						"stoppingTime": {
+							"minStoppingTime": 120,
+							"maxStoppingTime": 3600
+						}
+					},
+					{
+						"stoppingTime": {
+							"minStoppingTime": 240,
+							"maxStoppingTime": 1800
+						}
+					},
+					{
+						"stoppingTime": {
+							"minStoppingTime": 120,
+							"maxStoppingTime": 3600
+						}
+					}
+				]
+			}
+		},
+		{
+			"node": {
+				"nodeName": "node3",
+				"breakCapacity": 1,
+				"slowChargeCapacity": 0,
+				"fastChargeCapacity": 0,
+				"breakingTimes": [
+					{
+						"stoppingTime": {
+							"minStoppingTime": 120,
+							"maxStoppingTime": 3600
+						}
+					},
+					{
+						"stoppingTime": {
+							"minStoppingTime": 180,
+							"maxStoppingTime": 1800
+						}
+					},
+					{
+						"stoppingTime": {
+							"minStoppingTime": 120,
+							"maxStoppingTime": 3600
+						}
+					}
+				]
+			}
+		},
+		{
+			"node": {
+				"nodeName": "dep",
+				"breakCapacity": 1000,
+				"slowChargeCapacity": 1000,
+				"fastChargeCapacity": 0,
+				"breakingTimes": [
+					{
+						"stoppingTime": {
+							"minStoppingTime": 0,
+							"maxStoppingTime": 86400
+						}
+					},
+					{
+						"stoppingTime": {
+							"minStoppingTime": 0,
+							"maxStoppingTime": 86400
+						}
+					},
+					{
+						"stoppingTime": {
+							"minStoppingTime": 0,
+							"maxStoppingTime": 86400
+						}
+					}
+				]
+			}
+		}
+	],
+	"deadheadArcs": [
+		{
+			"deadheadArc": {
+				"deadheadArcCode": 0,
+				"terminalNode": "node1",
+				"deadheadType": "pullIn",
+				"arcLength": 2.86,
+				"travelTimes": [
+					600,
+					540,
+					600
+				]
+			}
+		},
+		{
+			"deadheadArc": {
+				"deadheadArcCode": 1,
+				"terminalNode": "node1",
+				"deadheadType": "pullOut",
+				"arcLength": 2.68,
+				"travelTimes": [
+					600,
+					540,
+					600
+				]
+			}
+		},
+		{
+			"deadheadArc": {
+				"deadheadArcCode": 2,
+				"terminalNode": "node2",
+				"deadheadType": "pullIn",
+				"arcLength": 2.56,
+				"travelTimes": [
+					540,
+					480,
+					540
+				]
+			}
+		},
+		{
+			"deadheadArc": {
+				"deadheadArcCode": 3,
+				"terminalNode": "node2",
+				"deadheadType": "pullOut",
+				"arcLength": 2.65,
+				"travelTimes": [
+					540,
+					480,
+					540
+				]
+			}
+		},
+		{
+			"deadheadArc": {
+				"deadheadArcCode": 4,
+				"terminalNode": "node3",
+				"deadheadType": "pullIn",
+				"arcLength": 2.93,
+				"travelTimes": [
+					660,
+					600,
+					660
+				]
+			}
+		},
+		{
+			"deadheadArc": {
+				"deadheadArcCode": 5,
+				"terminalNode": "node3",
+				"deadheadType": "pullOut",
+				"arcLength": 2.89,
+				"travelTimes": [
+					600,
+					540,
+					600
+				]
+			}
+		}
+	],
+	"directions": [
+		{
+			"direction": {
+				"lineName": "line1",
+				"directionType": "inBound",
+				"startNode": "node2",
+				"endNode": "node1",
+				"headways": [
+					{
+						"headway": {
+							"maxHeadway": 1080
+						}
+					},
+					{
+						"headway": {
+							"maxHeadway": 1820
+						}
+					},
+					{
+						"headway": {
+							"maxHeadway": 1080
+						}
+					}
+				],
+				"trips": [
+					{
+						"trip": {
+							"tripId": 76761,
+							"startTime": 28800,
+							"endTime": 29760,
+							"mainStopArrivalTime": 28800,
+							"lengthTrip": 3.878261,
+							"isInitialFinalTT": "initial"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 76800,
+							"startTime": 29580,
+							"endTime": 30540,
+							"mainStopArrivalTime": 29580,
+							"lengthTrip": 3.878261,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 76839,
+							"startTime": 30360,
+							"endTime": 31320,
+							"mainStopArrivalTime": 30360,
+							"lengthTrip": 3.878261,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 76878,
+							"startTime": 31140,
+							"endTime": 32100,
+							"mainStopArrivalTime": 31140,
+							"lengthTrip": 3.878261,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 76917,
+							"startTime": 31920,
+							"endTime": 32880,
+							"mainStopArrivalTime": 31920,
+							"lengthTrip": 3.878261,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 76956,
+							"startTime": 32700,
+							"endTime": 33660,
+							"mainStopArrivalTime": 32700,
+							"lengthTrip": 3.878261,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 76995,
+							"startTime": 33480,
+							"endTime": 34440,
+							"mainStopArrivalTime": 33480,
+							"lengthTrip": 3.878261,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 77031,
+							"startTime": 34200,
+							"endTime": 35160,
+							"mainStopArrivalTime": 34200,
+							"lengthTrip": 3.878261,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 77070,
+							"startTime": 34980,
+							"endTime": 35940,
+							"mainStopArrivalTime": 34980,
+							"lengthTrip": 3.878261,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 77106,
+							"startTime": 35700,
+							"endTime": 36660,
+							"mainStopArrivalTime": 35700,
+							"lengthTrip": 3.878261,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 77160,
+							"startTime": 36780,
+							"endTime": 37740,
+							"mainStopArrivalTime": 36780,
+							"lengthTrip": 3.878261,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 77226,
+							"startTime": 38100,
+							"endTime": 39060,
+							"mainStopArrivalTime": 38100,
+							"lengthTrip": 3.878261,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 77292,
+							"startTime": 39420,
+							"endTime": 40380,
+							"mainStopArrivalTime": 39420,
+							"lengthTrip": 3.878261,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 77358,
+							"startTime": 40740,
+							"endTime": 41700,
+							"mainStopArrivalTime": 40740,
+							"lengthTrip": 3.878261,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 77424,
+							"startTime": 42060,
+							"endTime": 43020,
+							"mainStopArrivalTime": 42060,
+							"lengthTrip": 3.878261,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 77487,
+							"startTime": 43320,
+							"endTime": 44280,
+							"mainStopArrivalTime": 43320,
+							"lengthTrip": 3.878261,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 77526,
+							"startTime": 44100,
+							"endTime": 45060,
+							"mainStopArrivalTime": 44100,
+							"lengthTrip": 3.878261,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 77565,
+							"startTime": 44880,
+							"endTime": 45840,
+							"mainStopArrivalTime": 44880,
+							"lengthTrip": 3.878261,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 77604,
+							"startTime": 45660,
+							"endTime": 46620,
+							"mainStopArrivalTime": 45660,
+							"lengthTrip": 3.878261,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 77643,
+							"startTime": 46440,
+							"endTime": 47400,
+							"mainStopArrivalTime": 46440,
+							"lengthTrip": 3.878261,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 77682,
+							"startTime": 47220,
+							"endTime": 48180,
+							"mainStopArrivalTime": 47220,
+							"lengthTrip": 3.878261,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 77721,
+							"startTime": 48000,
+							"endTime": 48960,
+							"mainStopArrivalTime": 48000,
+							"lengthTrip": 3.878261,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 77760,
+							"startTime": 48780,
+							"endTime": 49740,
+							"mainStopArrivalTime": 48780,
+							"lengthTrip": 3.878261,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 77799,
+							"startTime": 49560,
+							"endTime": 50520,
+							"mainStopArrivalTime": 49560,
+							"lengthTrip": 3.878261,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 77838,
+							"startTime": 50340,
+							"endTime": 51300,
+							"mainStopArrivalTime": 50340,
+							"lengthTrip": 3.878261,
+							"isInitialFinalTT": "final"
+						}
+					}
+				]
+			}
+		},
+		{
+			"direction": {
+				"lineName": "line1",
+				"directionType": "outBound",
+				"startNode": "node1",
+				"endNode": "node2",
+				"headways": [
+					{
+						"headway": {
+							"maxHeadway": 1080
+						}
+					},
+					{
+						"headway": {
+							"maxHeadway": 1820
+						}
+					},
+					{
+						"headway": {
+							"maxHeadway": 1080
+						}
+					}
+				],
+				"trips": [
+					{
+						"trip": {
+							"tripId": 79986,
+							"startTime": 28380,
+							"endTime": 29100,
+							"mainStopArrivalTime": 29100,
+							"lengthTrip": 3.704809,
+							"isInitialFinalTT": "initial"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 80028,
+							"startTime": 29220,
+							"endTime": 29940,
+							"mainStopArrivalTime": 29940,
+							"lengthTrip": 3.704809,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 80070,
+							"startTime": 30060,
+							"endTime": 30780,
+							"mainStopArrivalTime": 30780,
+							"lengthTrip": 3.704809,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 80109,
+							"startTime": 30840,
+							"endTime": 31560,
+							"mainStopArrivalTime": 31560,
+							"lengthTrip": 3.704809,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 80148,
+							"startTime": 31620,
+							"endTime": 32340,
+							"mainStopArrivalTime": 32340,
+							"lengthTrip": 3.704809,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 80187,
+							"startTime": 32400,
+							"endTime": 33120,
+							"mainStopArrivalTime": 33120,
+							"lengthTrip": 3.704809,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 80226,
+							"startTime": 33180,
+							"endTime": 33900,
+							"mainStopArrivalTime": 33900,
+							"lengthTrip": 3.704809,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 80265,
+							"startTime": 33960,
+							"endTime": 34680,
+							"mainStopArrivalTime": 34680,
+							"lengthTrip": 3.704809,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 80304,
+							"startTime": 34740,
+							"endTime": 35460,
+							"mainStopArrivalTime": 35460,
+							"lengthTrip": 3.704809,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 80358,
+							"startTime": 35820,
+							"endTime": 36540,
+							"mainStopArrivalTime": 36540,
+							"lengthTrip": 3.704809,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 80424,
+							"startTime": 37140,
+							"endTime": 37860,
+							"mainStopArrivalTime": 37860,
+							"lengthTrip": 3.704809,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 80490,
+							"startTime": 38460,
+							"endTime": 39180,
+							"mainStopArrivalTime": 39180,
+							"lengthTrip": 3.704809,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 80556,
+							"startTime": 39780,
+							"endTime": 40500,
+							"mainStopArrivalTime": 40500,
+							"lengthTrip": 3.704809,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 80622,
+							"startTime": 41100,
+							"endTime": 41820,
+							"mainStopArrivalTime": 41820,
+							"lengthTrip": 3.704809,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 80688,
+							"startTime": 42420,
+							"endTime": 43140,
+							"mainStopArrivalTime": 43140,
+							"lengthTrip": 3.704809,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 80730,
+							"startTime": 43260,
+							"endTime": 43980,
+							"mainStopArrivalTime": 43980,
+							"lengthTrip": 3.704809,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 80769,
+							"startTime": 44040,
+							"endTime": 44760,
+							"mainStopArrivalTime": 44760,
+							"lengthTrip": 3.704809,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 80808,
+							"startTime": 44820,
+							"endTime": 45540,
+							"mainStopArrivalTime": 45540,
+							"lengthTrip": 3.704809,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 80847,
+							"startTime": 45600,
+							"endTime": 46320,
+							"mainStopArrivalTime": 46320,
+							"lengthTrip": 3.704809,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 80886,
+							"startTime": 46380,
+							"endTime": 47100,
+							"mainStopArrivalTime": 47100,
+							"lengthTrip": 3.704809,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 80925,
+							"startTime": 47160,
+							"endTime": 47880,
+							"mainStopArrivalTime": 47880,
+							"lengthTrip": 3.704809,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 80964,
+							"startTime": 47940,
+							"endTime": 48660,
+							"mainStopArrivalTime": 48660,
+							"lengthTrip": 3.704809,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 81003,
+							"startTime": 48720,
+							"endTime": 49440,
+							"mainStopArrivalTime": 49440,
+							"lengthTrip": 3.704809,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 81042,
+							"startTime": 49500,
+							"endTime": 50220,
+							"mainStopArrivalTime": 50220,
+							"lengthTrip": 3.704809,
+							"isInitialFinalTT": "final"
+						}
+					}
+				]
+			}
+		},
+		{
+			"direction": {
+				"lineName": "line2",
+				"directionType": "inBound",
+				"startNode": "node3",
+				"endNode": "node1",
+				"headways": [
+					{
+						"headway": {
+							"maxHeadway": 1080
+						}
+					},
+					{
+						"headway": {
+							"maxHeadway": 1820
+						}
+					},
+					{
+						"headway": {
+							"maxHeadway": 1080
+						}
+					}
+				],
+				"trips": [
+					{
+						"trip": {
+							"tripId": 83268,
+							"startTime": 29100,
+							"endTime": 29880,
+							"mainStopArrivalTime": 29100,
+							"lengthTrip": 4.716822,
+							"isInitialFinalTT": "initial"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 83310,
+							"startTime": 29940,
+							"endTime": 30720,
+							"mainStopArrivalTime": 29940,
+							"lengthTrip": 4.716822,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 83349,
+							"startTime": 30720,
+							"endTime": 31500,
+							"mainStopArrivalTime": 30720,
+							"lengthTrip": 4.716822,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 83388,
+							"startTime": 31500,
+							"endTime": 32280,
+							"mainStopArrivalTime": 31500,
+							"lengthTrip": 4.716822,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 83427,
+							"startTime": 32280,
+							"endTime": 33060,
+							"mainStopArrivalTime": 32280,
+							"lengthTrip": 4.716822,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 83466,
+							"startTime": 33060,
+							"endTime": 33840,
+							"mainStopArrivalTime": 33060,
+							"lengthTrip": 4.716822,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 83505,
+							"startTime": 33840,
+							"endTime": 34620,
+							"mainStopArrivalTime": 33840,
+							"lengthTrip": 4.716822,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 83544,
+							"startTime": 34620,
+							"endTime": 35400,
+							"mainStopArrivalTime": 34620,
+							"lengthTrip": 4.716822,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 83583,
+							"startTime": 35400,
+							"endTime": 36180,
+							"mainStopArrivalTime": 35400,
+							"lengthTrip": 4.716822,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 83634,
+							"startTime": 36420,
+							"endTime": 37200,
+							"mainStopArrivalTime": 36420,
+							"lengthTrip": 4.716822,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 83694,
+							"startTime": 37620,
+							"endTime": 38400,
+							"mainStopArrivalTime": 37620,
+							"lengthTrip": 4.716822,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 83754,
+							"startTime": 38820,
+							"endTime": 39600,
+							"mainStopArrivalTime": 38820,
+							"lengthTrip": 4.716822,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 83814,
+							"startTime": 40020,
+							"endTime": 40800,
+							"mainStopArrivalTime": 40020,
+							"lengthTrip": 4.716822,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 83874,
+							"startTime": 41220,
+							"endTime": 42000,
+							"mainStopArrivalTime": 41220,
+							"lengthTrip": 4.716822,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 83937,
+							"startTime": 42480,
+							"endTime": 43260,
+							"mainStopArrivalTime": 42480,
+							"lengthTrip": 4.716822,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 83991,
+							"startTime": 43560,
+							"endTime": 44340,
+							"mainStopArrivalTime": 43560,
+							"lengthTrip": 4.716822,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 84033,
+							"startTime": 44400,
+							"endTime": 45180,
+							"mainStopArrivalTime": 44400,
+							"lengthTrip": 4.716822,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 84075,
+							"startTime": 45240,
+							"endTime": 46020,
+							"mainStopArrivalTime": 45240,
+							"lengthTrip": 4.716822,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 84117,
+							"startTime": 46080,
+							"endTime": 46860,
+							"mainStopArrivalTime": 46080,
+							"lengthTrip": 4.716822,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 84159,
+							"startTime": 46920,
+							"endTime": 47700,
+							"mainStopArrivalTime": 46920,
+							"lengthTrip": 4.716822,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 84201,
+							"startTime": 47760,
+							"endTime": 48540,
+							"mainStopArrivalTime": 47760,
+							"lengthTrip": 4.716822,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 84243,
+							"startTime": 48600,
+							"endTime": 49380,
+							"mainStopArrivalTime": 48600,
+							"lengthTrip": 4.716822,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 84285,
+							"startTime": 49440,
+							"endTime": 50220,
+							"mainStopArrivalTime": 49440,
+							"lengthTrip": 4.716822,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 84327,
+							"startTime": 50280,
+							"endTime": 51060,
+							"mainStopArrivalTime": 50280,
+							"lengthTrip": 4.716822,
+							"isInitialFinalTT": "final"
+						}
+					}
+				]
+			}
+		},
+		{
+			"direction": {
+				"lineName": "line2",
+				"directionType": "outBound",
+				"startNode": "node1",
+				"endNode": "node3",
+				"headways": [
+					{
+						"headway": {
+							"maxHeadway": 1080
+						}
+					},
+					{
+						"headway": {
+							"maxHeadway": 1820
+						}
+					},
+					{
+						"headway": {
+							"maxHeadway": 1080
+						}
+					}
+				],
+				"trips": [
+					{
+						"trip": {
+							"tripId": 86472,
+							"startTime": 28260,
+							"endTime": 28980,
+							"mainStopArrivalTime": 28980,
+							"lengthTrip": 4.18435,
+							"isInitialFinalTT": "initial"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 86514,
+							"startTime": 29100,
+							"endTime": 29820,
+							"mainStopArrivalTime": 29820,
+							"lengthTrip": 4.18435,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 86553,
+							"startTime": 29880,
+							"endTime": 30600,
+							"mainStopArrivalTime": 30600,
+							"lengthTrip": 4.18435,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 86592,
+							"startTime": 30660,
+							"endTime": 31380,
+							"mainStopArrivalTime": 31380,
+							"lengthTrip": 4.18435,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 86631,
+							"startTime": 31440,
+							"endTime": 32160,
+							"mainStopArrivalTime": 32160,
+							"lengthTrip": 4.18435,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 86670,
+							"startTime": 32220,
+							"endTime": 32940,
+							"mainStopArrivalTime": 32940,
+							"lengthTrip": 4.18435,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 86709,
+							"startTime": 33000,
+							"endTime": 33720,
+							"mainStopArrivalTime": 33720,
+							"lengthTrip": 4.18435,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 86748,
+							"startTime": 33780,
+							"endTime": 34500,
+							"mainStopArrivalTime": 34500,
+							"lengthTrip": 4.18435,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 86787,
+							"startTime": 34560,
+							"endTime": 35280,
+							"mainStopArrivalTime": 35280,
+							"lengthTrip": 4.18435,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 86835,
+							"startTime": 35520,
+							"endTime": 36240,
+							"mainStopArrivalTime": 36240,
+							"lengthTrip": 4.18435,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 86895,
+							"startTime": 36720,
+							"endTime": 37440,
+							"mainStopArrivalTime": 37440,
+							"lengthTrip": 4.18435,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 86955,
+							"startTime": 37920,
+							"endTime": 38640,
+							"mainStopArrivalTime": 38640,
+							"lengthTrip": 4.18435,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 87015,
+							"startTime": 39120,
+							"endTime": 39840,
+							"mainStopArrivalTime": 39840,
+							"lengthTrip": 4.18435,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 87075,
+							"startTime": 40320,
+							"endTime": 41040,
+							"mainStopArrivalTime": 41040,
+							"lengthTrip": 4.18435,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 87138,
+							"startTime": 41580,
+							"endTime": 42300,
+							"mainStopArrivalTime": 42300,
+							"lengthTrip": 4.18435,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 87195,
+							"startTime": 42720,
+							"endTime": 43440,
+							"mainStopArrivalTime": 43440,
+							"lengthTrip": 4.18435,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 87237,
+							"startTime": 43560,
+							"endTime": 44280,
+							"mainStopArrivalTime": 44280,
+							"lengthTrip": 4.18435,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 87279,
+							"startTime": 44400,
+							"endTime": 45120,
+							"mainStopArrivalTime": 45120,
+							"lengthTrip": 4.18435,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 87321,
+							"startTime": 45240,
+							"endTime": 45960,
+							"mainStopArrivalTime": 45960,
+							"lengthTrip": 4.18435,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 87363,
+							"startTime": 46080,
+							"endTime": 46800,
+							"mainStopArrivalTime": 46800,
+							"lengthTrip": 4.18435,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 87405,
+							"startTime": 46920,
+							"endTime": 47640,
+							"mainStopArrivalTime": 47640,
+							"lengthTrip": 4.18435,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 87447,
+							"startTime": 47760,
+							"endTime": 48480,
+							"mainStopArrivalTime": 48480,
+							"lengthTrip": 4.18435,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 87489,
+							"startTime": 48600,
+							"endTime": 49320,
+							"mainStopArrivalTime": 49320,
+							"lengthTrip": 4.18435,
+							"isInitialFinalTT": "null"
+						}
+					},
+					{
+						"trip": {
+							"tripId": 87531,
+							"startTime": 49440,
+							"endTime": 50160,
+							"mainStopArrivalTime": 50160,
+							"lengthTrip": 4.18435,
+							"isInitialFinalTT": "final"
+						}
+					}
+				]
+			}
+		}
+	],
+	"fleet": {
+		"vehicleList": [
+			{
+				"vehicleType": {
+					"vehicleTypeName": "ICE",
+					"usageCost": 70,
+					"pulliInOutCost": 0.0001,
+					"iceInfo": {
+						"emissionCoefficient": 0.00001
+					}
+				}
+			},
+			{
+				"vehicleType": {
+					"vehicleTypeName": "electric",
+					"usageCost": 80,
+					"pulliInOutCost": 0.0001,
+					"electricInfo": {
+						"numberVehicle": 5,
+						"vehicleAutonomy": 60,
+						"maxChargingTime": 7200,
+						"minChargingTime": 420
+					}
+				}
+			}
+		],
+		"phi": 0.25
+	},
+	"globalCost": {
+		"breakCostCoefficient": 0.0007
+	},
+	"vehicleBlockList": [
+		{
+			"vehicleBlock": {
+				"vehicleTypeName": "electric",
+				"activityList": [
+					{
+						"deadhead": {
+							"startingTime": 28260,
+							"endingTime": 28800,
+							"deadheadArcCode": 2
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 76761
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node1",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 29760,
+										"endTime": 29880,
+										"typeSpot": "parking",
+										"isCharging": false
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 86553
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node3",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 30600,
+										"endTime": 30720,
+										"typeSpot": "parking",
+										"isCharging": false
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 83349
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node1",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 31500,
+										"endTime": 31620,
+										"typeSpot": "parking",
+										"isCharging": false
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 80148
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node2",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 32340,
+										"endTime": 32700,
+										"typeSpot": "parking",
+										"isCharging": false
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 76956
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node1",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 33660,
+										"endTime": 33780,
+										"typeSpot": "parking",
+										"isCharging": false
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 86748
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node3",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 34500,
+										"endTime": 34620,
+										"typeSpot": "parking",
+										"isCharging": false
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 83544
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node1",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 35400,
+										"endTime": 35520,
+										"typeSpot": "parking",
+										"isCharging": false
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 86835
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node3",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 36240,
+										"endTime": 36420,
+										"typeSpot": "parking",
+										"isCharging": false
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 83634
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node1",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 37200,
+										"endTime": 37920,
+										"typeSpot": "parking",
+										"isCharging": false
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 86955
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node3",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 38640,
+										"endTime": 38820,
+										"typeSpot": "parking",
+										"isCharging": false
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 83754
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node1",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 39600,
+										"endTime": 40320,
+										"typeSpot": "fastCharging",
+										"isCharging": true
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 87075
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node3",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 41040,
+										"endTime": 41220,
+										"typeSpot": "parking",
+										"isCharging": false
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 83874
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node1",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 42000,
+										"endTime": 42420,
+										"typeSpot": "fastCharging",
+										"isCharging": true
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 80688
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node2",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 43140,
+										"endTime": 43320,
+										"typeSpot": "parking",
+										"isCharging": false
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 77487
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node1",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 44280,
+										"endTime": 44400,
+										"typeSpot": "fastCharging",
+										"isCharging": true
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 87279
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node3",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 45120,
+										"endTime": 45240,
+										"typeSpot": "parking",
+										"isCharging": false
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 84075
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node1",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 46020,
+										"endTime": 46380,
+										"typeSpot": "parking",
+										"isCharging": false
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 80886
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node2",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 47100,
+										"endTime": 47220,
+										"typeSpot": "parking",
+										"isCharging": false
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 77682
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node1",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 48180,
+										"endTime": 48600,
+										"typeSpot": "parking",
+										"isCharging": false
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 87489
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node3",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 49320,
+										"endTime": 49440,
+										"typeSpot": "parking",
+										"isCharging": false
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 84285
+						}
+					},
+					{
+						"deadhead": {
+							"startingTime": 50220,
+							"endingTime": 50820,
+							"deadheadArcCode": 1
+						}
+					}
+				]
+			}
+		},
+		{
+			"vehicleBlock": {
+				"vehicleTypeName": "electric",
+				"activityList": [
+					{
+						"deadhead": {
+							"startingTime": 27780,
+							"endingTime": 28380,
+							"deadheadArcCode": 0
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 79986
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node2",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 29100,
+										"endTime": 29580,
+										"typeSpot": "parking",
+										"isCharging": false
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 76800
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node1",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 30540,
+										"endTime": 30660,
+										"typeSpot": "parking",
+										"isCharging": false
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 86592
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node3",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 31380,
+										"endTime": 31500,
+										"typeSpot": "parking",
+										"isCharging": false
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 83388
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node1",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 32280,
+										"endTime": 32400,
+										"typeSpot": "parking",
+										"isCharging": false
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 80187
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node2",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 33120,
+										"endTime": 33480,
+										"typeSpot": "parking",
+										"isCharging": false
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 76995
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node1",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 34440,
+										"endTime": 34560,
+										"typeSpot": "parking",
+										"isCharging": false
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 86787
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node3",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 35280,
+										"endTime": 35400,
+										"typeSpot": "parking",
+										"isCharging": false
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 83583
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node1",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 36180,
+										"endTime": 37140,
+										"typeSpot": "fastCharging",
+										"isCharging": true
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 80424
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node2",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 37860,
+										"endTime": 38100,
+										"typeSpot": "parking",
+										"isCharging": false
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 77226
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node1",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 39060,
+										"endTime": 39780,
+										"typeSpot": "parking",
+										"isCharging": false
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 80556
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node2",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 40500,
+										"endTime": 40740,
+										"typeSpot": "parking",
+										"isCharging": false
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 77358
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node1",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 41700,
+										"endTime": 42720,
+										"typeSpot": "parking",
+										"isCharging": false
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 87195
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node3",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 43440,
+										"endTime": 43560,
+										"typeSpot": "parking",
+										"isCharging": false
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 83991
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node1",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 44340,
+										"endTime": 44820,
+										"typeSpot": "parking",
+										"isCharging": false
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 80808
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node2",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 45540,
+										"endTime": 45660,
+										"typeSpot": "parking",
+										"isCharging": false
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 77604
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node1",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 46620,
+										"endTime": 46920,
+										"typeSpot": "parking",
+										"isCharging": false
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 87405
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node3",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 47640,
+										"endTime": 47760,
+										"typeSpot": "parking",
+										"isCharging": false
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 84201
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node1",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 48540,
+										"endTime": 48720,
+										"typeSpot": "parking",
+										"isCharging": false
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 81003
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node2",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 49440,
+										"endTime": 49560,
+										"typeSpot": "parking",
+										"isCharging": false
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 77799
+						}
+					},
+					{
+						"deadhead": {
+							"startingTime": 50520,
+							"endingTime": 51120,
+							"deadheadArcCode": 1
+						}
+					}
+				]
+			}
+		},
+		{
+			"vehicleBlock": {
+				"vehicleTypeName": "electric",
+				"activityList": [
+					{
+						"deadhead": {
+							"startingTime": 28620,
+							"endingTime": 29220,
+							"deadheadArcCode": 0
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 80028
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node2",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 29940,
+										"endTime": 30360,
+										"typeSpot": "parking",
+										"isCharging": false
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 76839
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node1",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 31320,
+										"endTime": 31440,
+										"typeSpot": "parking",
+										"isCharging": false
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 86631
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node3",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 32160,
+										"endTime": 32280,
+										"typeSpot": "parking",
+										"isCharging": false
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 83427
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node1",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 33060,
+										"endTime": 33180,
+										"typeSpot": "parking",
+										"isCharging": false
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 80226
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node2",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 33900,
+										"endTime": 34200,
+										"typeSpot": "parking",
+										"isCharging": false
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 77031
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node1",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 35160,
+										"endTime": 35820,
+										"typeSpot": "parking",
+										"isCharging": false
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 80358
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node2",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 36540,
+										"endTime": 36780,
+										"typeSpot": "parking",
+										"isCharging": false
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 77160
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node1",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 37740,
+										"endTime": 38460,
+										"typeSpot": "parking",
+										"isCharging": false
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 80490
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node2",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 39180,
+										"endTime": 39420,
+										"typeSpot": "parking",
+										"isCharging": false
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 77292
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node1",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 40380,
+										"endTime": 41100,
+										"typeSpot": "fastCharging",
+										"isCharging": true
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 80622
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node2",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 41820,
+										"endTime": 42060,
+										"typeSpot": "parking",
+										"isCharging": false
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 77424
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node1",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 43020,
+										"endTime": 43560,
+										"typeSpot": "parking",
+										"isCharging": false
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 87237
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node3",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 44280,
+										"endTime": 44400,
+										"typeSpot": "parking",
+										"isCharging": false
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 84033
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node1",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 45180,
+										"endTime": 45600,
+										"typeSpot": "slowCharging",
+										"isCharging": true
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 80847
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node2",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 46320,
+										"endTime": 46440,
+										"typeSpot": "parking",
+										"isCharging": false
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 77643
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node1",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 47400,
+										"endTime": 47760,
+										"typeSpot": "parking",
+										"isCharging": false
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 87447
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node3",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 48480,
+										"endTime": 48600,
+										"typeSpot": "parking",
+										"isCharging": false
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 84243
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node1",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 49380,
+										"endTime": 49500,
+										"typeSpot": "parking",
+										"isCharging": false
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 81042
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node2",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 50220,
+										"endTime": 50340,
+										"typeSpot": "parking",
+										"isCharging": false
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 77838
+						}
+					},
+					{
+						"deadhead": {
+							"startingTime": 51300,
+							"endingTime": 51900,
+							"deadheadArcCode": 1
+						}
+					}
+				]
+			}
+		},
+		{
+			"vehicleBlock": {
+				"vehicleTypeName": "electric",
+				"activityList": [
+					{
+						"deadhead": {
+							"startingTime": 27660,
+							"endingTime": 28260,
+							"deadheadArcCode": 0
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 86472
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node3",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 28980,
+										"endTime": 29100,
+										"typeSpot": "parking",
+										"isCharging": false
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 83268
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node1",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 29880,
+										"endTime": 30060,
+										"typeSpot": "parking",
+										"isCharging": false
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 80070
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node2",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 30780,
+										"endTime": 31140,
+										"typeSpot": "parking",
+										"isCharging": false
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 76878
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node1",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 32100,
+										"endTime": 32220,
+										"typeSpot": "parking",
+										"isCharging": false
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 86670
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node3",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 32940,
+										"endTime": 33060,
+										"typeSpot": "parking",
+										"isCharging": false
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 83466
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node1",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 33840,
+										"endTime": 33960,
+										"typeSpot": "parking",
+										"isCharging": false
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 80265
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node2",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 34680,
+										"endTime": 34980,
+										"typeSpot": "parking",
+										"isCharging": false
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 77070
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node1",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 35940,
+										"endTime": 36720,
+										"typeSpot": "slowCharging",
+										"isCharging": true
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 86895
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node3",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 37440,
+										"endTime": 37620,
+										"typeSpot": "parking",
+										"isCharging": false
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 83694
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node1",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 38400,
+										"endTime": 39120,
+										"typeSpot": "slowCharging",
+										"isCharging": true
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 87015
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node3",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 39840,
+										"endTime": 40020,
+										"typeSpot": "parking",
+										"isCharging": false
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 83814
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node1",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 40800,
+										"endTime": 41580,
+										"typeSpot": "parking",
+										"isCharging": false
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 87138
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node3",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 42300,
+										"endTime": 42480,
+										"typeSpot": "parking",
+										"isCharging": false
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 83937
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node1",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 43260,
+										"endTime": 44040,
+										"typeSpot": "fastCharging",
+										"isCharging": true
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 80769
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node2",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 44760,
+										"endTime": 44880,
+										"typeSpot": "parking",
+										"isCharging": false
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 77565
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node1",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 45840,
+										"endTime": 46080,
+										"typeSpot": "parking",
+										"isCharging": false
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 87363
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node3",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 46800,
+										"endTime": 46920,
+										"typeSpot": "parking",
+										"isCharging": false
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 84159
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node1",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 47700,
+										"endTime": 47940,
+										"typeSpot": "parking",
+										"isCharging": false
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 80964
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node2",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 48660,
+										"endTime": 48780,
+										"typeSpot": "parking",
+										"isCharging": false
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 77760
+						}
+					},
+					{
+						"deadhead": {
+							"startingTime": 49740,
+							"endingTime": 50340,
+							"deadheadArcCode": 1
+						}
+					}
+				]
+			}
+		},
+		{
+			"vehicleBlock": {
+				"vehicleTypeName": "electric",
+				"activityList": [
+					{
+						"deadhead": {
+							"startingTime": 29100,
+							"endingTime": 29700,
+							"deadheadArcCode": 0
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 86514
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node3",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 29820,
+										"endTime": 29940,
+										"typeSpot": "parking",
+										"isCharging": false
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 83310
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node1",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 30720,
+										"endTime": 30840,
+										"typeSpot": "parking",
+										"isCharging": false
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 80109
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node2",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 31560,
+										"endTime": 31920,
+										"typeSpot": "parking",
+										"isCharging": false
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 76917
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node1",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 32880,
+										"endTime": 33000,
+										"typeSpot": "parking",
+										"isCharging": false
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 86709
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node3",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 33720,
+										"endTime": 33840,
+										"typeSpot": "parking",
+										"isCharging": false
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 83505
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node1",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 34620,
+										"endTime": 34740,
+										"typeSpot": "parking",
+										"isCharging": false
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 80304
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node2",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 35460,
+										"endTime": 35700,
+										"typeSpot": "parking",
+										"isCharging": false
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 77106
+						}
+					},
+					{
+						"deadhead": {
+							"startingTime": 36660,
+							"endingTime": 37200,
+							"deadheadArcCode": 1
+						}
+					},
+					{
+						"break": {
+							"nameNode": "dep",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 37200,
+										"endTime": 42660,
+										"typeSpot": "slowCharging",
+										"isCharging": true
+									}
+								}
+							]
+						}
+					},
+					{
+						"deadhead": {
+							"startingTime": 42660,
+							"endingTime": 43260,
+							"deadheadArcCode": 0
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 80730
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node2",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 43980,
+										"endTime": 44100,
+										"typeSpot": "parking",
+										"isCharging": false
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 77526
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node1",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 45060,
+										"endTime": 45240,
+										"typeSpot": "parking",
+										"isCharging": false
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 87321
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node3",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 45960,
+										"endTime": 46080,
+										"typeSpot": "parking",
+										"isCharging": false
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 84117
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node1",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 46860,
+										"endTime": 47160,
+										"typeSpot": "parking",
+										"isCharging": false
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 80925
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node2",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 47880,
+										"endTime": 48000,
+										"typeSpot": "parking",
+										"isCharging": false
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 77721
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node1",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 48960,
+										"endTime": 49440,
+										"typeSpot": "parking",
+										"isCharging": false
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 87531
+						}
+					},
+					{
+						"break": {
+							"nameNode": "node3",
+							"breakTimeWindows": [
+								{
+									"breakTimeWindow": {
+										"startTime": 50160,
+										"endTime": 50280,
+										"typeSpot": "parking",
+										"isCharging": false
+									}
+								}
+							]
+						}
+					},
+					{
+						"activityTrip": {
+							"tripId": 84327
+						}
+					},
+					{
+						"deadhead": {
+							"startingTime": 51060,
+							"endingTime": 51660,
+							"deadheadArcCode": 1
+						}
+					}
+				]
+			}
+		}
+	],
+	"reportSol": {
+		"listCpuType": [
+			{
+				"cpuType": {
+					"description": "Intel(R) Xeon(R) Gold 5120 CPU @ 2194.845 MHz, 8 core, 16 threads",
+					"numberCpu": 1,
+					"cpuIntegerIndex": 267.738,
+					"cpuFloatIndex": 240.248
+				}
+			}
+		],
+		"lowerBound": 0,
+		"executionTime": 630.447
+	}
+}

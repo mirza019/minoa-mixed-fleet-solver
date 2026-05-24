@@ -10,10 +10,18 @@ __pycache__/
 # Generated experiment outputs and processed data
 outputs/
 data/
+!data/
+data/*
+!data/raw/
+data/raw/*
+!data/raw/minoa/
+data/raw/minoa/*
+!data/raw/minoa/senior/
+!data/raw/minoa/senior/*.json
 
 # Professor-provided challenge PDFs and validator binaries
-minoa/
-tools/
+/minoa/
+/tools/
 
 # Thesis, LaTeX, and documentation artifacts
 thesis-templates-master/
