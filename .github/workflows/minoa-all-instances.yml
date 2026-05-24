@@ -49,11 +49,35 @@ jobs:
           report="outputs/minoa/ci-all/all_instances_report.md"
           echo "## MINOA all-instance results" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "### Run configuration" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Field | Value |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|---|---|" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Dataset folder | \`data/raw/minoa/senior\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Algorithm | \`charging-aware path-cover\` for additional instances; \`multi-start path-cover\` for Small/Medium/Large |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Validator | \`tools/minoa/desktopValidator/desktopValidator/desktopValidator.jar\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Generated outputs | \`outputs/minoa/ci-all\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Processed working inputs | \`data/processed/minoa/ci-all\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "### Validator-backed result table" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
           if [[ -f "$report" ]]; then
             cat "$report" >> "$GITHUB_STEP_SUMMARY"
           else
             echo "No all-instance report was generated." >> "$GITHUB_STEP_SUMMARY"
           fi
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "### Generated output files" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "\`\`\`text" >> "$GITHUB_STEP_SUMMARY"
+          find outputs/minoa/ci-all -maxdepth 1 -type f -printf "%p\n" | sort >> "$GITHUB_STEP_SUMMARY" || true
+          echo "\`\`\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "### Processed working input files" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "\`\`\`text" >> "$GITHUB_STEP_SUMMARY"
+          find data/processed/minoa/ci-all -maxdepth 1 -type f -printf "%p\n" | sort >> "$GITHUB_STEP_SUMMARY" || true
+          echo "\`\`\`" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload all-instance artifacts
         if: always()

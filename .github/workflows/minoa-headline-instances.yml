@@ -53,12 +53,41 @@ jobs:
         if: always()
         run: |
           report="outputs/minoa/ci/${{ matrix.instance }}_report.md"
+          log="outputs/minoa/ci/${{ matrix.instance }}_search.log"
           echo "## MINOA ${{ matrix.instance }} result" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "### Run configuration" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Field | Value |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|---|---|" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Instance | \`${{ matrix.instance }}\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Algorithm | \`multi-start path-cover\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Builder | \`pathcover-cost\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| EV mode | \`charging\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Validator | \`tools/minoa/desktopValidator/desktopValidator/desktopValidator.jar\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "### Validator-backed result table" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           if [[ -f "$report" ]]; then
             cat "$report" >> "$GITHUB_STEP_SUMMARY"
           else
             echo "No result report was generated." >> "$GITHUB_STEP_SUMMARY"
+          fi
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "### Generated files" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "\`\`\`text" >> "$GITHUB_STEP_SUMMARY"
+          find outputs/minoa/ci -maxdepth 1 -type f -printf "%p\n" | sort >> "$GITHUB_STEP_SUMMARY" || true
+          echo "\`\`\`" >> "$GITHUB_STEP_SUMMARY"
+          if [[ -f "$log" ]]; then
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "<details><summary>Optimizer final log lines</summary>" >> "$GITHUB_STEP_SUMMARY"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "\`\`\`text" >> "$GITHUB_STEP_SUMMARY"
+            tail -80 "$log" >> "$GITHUB_STEP_SUMMARY"
+            echo "\`\`\`" >> "$GITHUB_STEP_SUMMARY"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "</details>" >> "$GITHUB_STEP_SUMMARY"
           fi
 
       - name: Upload output artifacts
