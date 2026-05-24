@@ -1,0 +1,61 @@
+name: MINOA Headline Instances
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "scripts/**"
+      - "data/raw/minoa/senior/Small_Input_S.json"
+      - "data/raw/minoa/senior/Medium_Input_S.json"
+      - "data/raw/minoa/senior/Large_Input_S.json"
+      - "tools/minoa/desktopValidator/**"
+      - ".github/workflows/minoa-headline-instances.yml"
+      - "requirements.txt"
+
+jobs:
+  solve-and-validate:
+    name: ${{ matrix.instance }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        instance: [small, medium, large]
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "17"
+
+      - name: Install Python dependencies
+        run: |
+          python -m venv .venv
+          .venv/bin/python -m pip install --upgrade pip
+          .venv/bin/python -m pip install -r requirements.txt
+
+      - name: Run optimized solver and desktop validator
+        env:
+          MINOA_DEPOT_BRIDGE_MIN_GAP: "999999"
+        run: scripts/ci/run_headline_instance.sh "${{ matrix.instance }}"
+
+      - name: Upload output artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: minoa-${{ matrix.instance }}-outputs
+          path: |
+            outputs/minoa/ci/*.json
+            outputs/minoa/ci/*.log
+            outputs/minoa/ci/*.md
+          if-no-files-found: ignore
