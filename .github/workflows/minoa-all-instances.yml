@@ -43,6 +43,18 @@ jobs:
       - name: Run all-instance pipeline and desktop validator
         run: scripts/ci/run_all_instances.sh
 
+      - name: Publish result table to summary
+        if: always()
+        run: |
+          report="outputs/minoa/ci-all/all_instances_report.md"
+          echo "## MINOA all-instance results" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          if [[ -f "$report" ]]; then
+            cat "$report" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "No all-instance report was generated." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
       - name: Upload all-instance artifacts
         if: always()
         uses: actions/upload-artifact@v4

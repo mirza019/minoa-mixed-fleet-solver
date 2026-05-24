@@ -49,6 +49,18 @@ jobs:
           MINOA_DEPOT_BRIDGE_MIN_GAP: "999999"
         run: scripts/ci/run_headline_instance.sh "${{ matrix.instance }}"
 
+      - name: Publish result table to summary
+        if: always()
+        run: |
+          report="outputs/minoa/ci/${{ matrix.instance }}_report.md"
+          echo "## MINOA ${{ matrix.instance }} result" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          if [[ -f "$report" ]]; then
+            cat "$report" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "No result report was generated." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
       - name: Upload output artifacts
         if: always()
         uses: actions/upload-artifact@v4
