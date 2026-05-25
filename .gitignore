@@ -34,6 +34,7 @@ tools/minoa/desktopValidator/desktopValidator/*
 
 # Thesis, LaTeX, and documentation artifacts
 thesis-templates-master/
+thesis-build-nobib/
 thesis-templates-master.zip
 scripts/minoa_make_latex_thesis.py
 scripts/minoa_make_thesis.py
