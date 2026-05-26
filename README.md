@@ -19,6 +19,7 @@ scripts/
   minoa_optimize.py            Multi-start search for stronger headline results
   minoa_pipeline.py            Normalizes raw inputs, solves, validates, reports
   minoa_report.py              Validator-backed table reporter
+  run_experiment.py            One-command runner with --algorithm
   run_sml_experiments.py       Small/Medium/Large experiment runner
   run_all_experiments.py       All-instance experiment runner
   minoa_lib/                   Solver modules
@@ -89,6 +90,18 @@ outputs and prints a table.
 
 ```bash
 .venv/bin/python scripts/run_sml_experiments.py
+```
+
+The same run can also be started through the algorithm-selecting wrapper:
+
+```bash
+.venv/bin/python scripts/run_experiment.py --algorithm multistart --scope sml
+```
+
+Other available algorithm names are:
+
+```text
+greedy, pathcover, weighted, multistart, ice-greedy, no-charge
 ```
 
 Run one headline instance only:
