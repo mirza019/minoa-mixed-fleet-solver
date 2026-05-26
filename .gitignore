@@ -16,8 +16,10 @@ data/*
 data/raw/*
 !data/raw/minoa/
 data/raw/minoa/*
+!data/raw/minoa/README.md
 !data/raw/minoa/senior/
 !data/raw/minoa/senior/*.json
+!data/raw/minoa/senior/README.md
 
 # Professor-provided challenge PDFs and validator binaries
 /minoa/
@@ -26,6 +28,7 @@ data/raw/minoa/*
 tools/*
 !tools/minoa/
 tools/minoa/*
+!tools/minoa/README.md
 !tools/minoa/desktopValidator/
 tools/minoa/desktopValidator/*
 !tools/minoa/desktopValidator/desktopValidator/

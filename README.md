@@ -33,6 +33,18 @@ tools/minoa/desktopValidator/desktopValidator/desktopValidator.jar
   MINOA All Instances          Runs all senior instances
 ```
 
+Folder-level documentation is also available:
+
+| Path | What it explains |
+|---|---|
+| [`scripts/README.md`](scripts/README.md) | Which command-line script does what. |
+| [`scripts/minoa_lib/README.md`](scripts/minoa_lib/README.md) | How the implementation modules are separated. |
+| [`scripts/ci/README.md`](scripts/ci/README.md) | Shell wrappers used by GitHub Actions. |
+| [`data/raw/minoa/README.md`](data/raw/minoa/README.md) | Raw-data handling policy. |
+| [`data/raw/minoa/senior/README.md`](data/raw/minoa/senior/README.md) | Instance list and headline/additional split. |
+| [`tools/minoa/README.md`](tools/minoa/README.md) | Desktop validator location and usage. |
+| [`.github/workflows/README.md`](.github/workflows/README.md) | CI workflow behavior and artifacts. |
+
 Generated outputs are written under `outputs/` and are intentionally ignored by
 Git.
 
