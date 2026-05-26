@@ -1,14 +1,15 @@
 # MINOA Mixed-Fleet Bus Scheduling Solver
 
-This repository contains a pure Python solver for the MINOA senior challenge:
-integrated timetable selection and vehicle scheduling for mixed electric and
-conventional bus fleets.
+This repository contains my Python implementation for the MINOA senior
+challenge. The task is to select timetable trips, build vehicle schedules, assign
+electric or conventional buses, and add charging when it is possible.
 
-The implemented approach is a **multi-start path-cover matheuristic**. It does
-not use Pyomo or Gurobi. The solver builds timetable variants, constructs a trip
-compatibility graph, creates vehicle blocks with a weighted path-cover heuristic,
-assigns ICE/EV vehicles, inserts charging where feasible, and validates reported
-solutions with the official desktop validator.
+The main method is a **multi-start path-cover matheuristic**. Here, this means a
+practical heuristic that uses graph-optimization ideas. It does not use Pyomo or
+Gurobi. In simple words, the solver creates several timetable variants, connects
+compatible trips in a graph, turns graph paths into vehicle blocks, assigns
+ICE/EV vehicles, and then checks the final output with the official desktop
+validator.
 
 ## Repository Contents
 
@@ -33,7 +34,7 @@ tools/minoa/desktopValidator/desktopValidator/desktopValidator.jar
   MINOA All Instances          Runs all senior instances
 ```
 
-Folder-level documentation is also available:
+Each important folder also has a short README:
 
 | Path | What it explains |
 |---|---|
@@ -45,22 +46,21 @@ Folder-level documentation is also available:
 | [`tools/minoa/README.md`](tools/minoa/README.md) | Desktop validator location and usage. |
 | [`.github/workflows/README.md`](.github/workflows/README.md) | CI workflow behavior and artifacts. |
 
-Generated outputs are written under `outputs/` and are intentionally ignored by
-Git.
+Generated outputs are written under `outputs/`. They are ignored by Git because
+they can be regenerated.
 
 ## Method Summary
 
-The main algorithm has four layers:
+The main idea has four steps:
 
-1. **Timetable variant generation:** selects timetable-feasible trips for each
+1. **Timetable variants:** selects timetable-feasible trips for each
    line and direction.
 2. **Compatibility graph:** each selected trip is a graph node; an arc
    \(i \rightarrow j\) exists if one bus can operate trip \(j\) after trip \(i\).
 3. **Weighted path cover:** each selected graph path becomes one vehicle block.
    Reducing the number of paths reduces the number of vehicles.
-4. **Mixed-fleet feasibility:** vehicle blocks are assigned to ICE/EV vehicles,
-   EV autonomy is simulated, charging breaks are inserted, and capacity is
-   checked.
+4. **Mixed-fleet check:** blocks are assigned to ICE/EV vehicles, EV autonomy is
+   simulated, charging is inserted, and capacity is checked.
 
 The official validator is used as an **external feasibility check** for reported
 results. It is not used to derive or repair the solution structure.
@@ -84,8 +84,8 @@ java -version
 
 ## Run Small, Medium, and Large
 
-This command runs the optimized multi-start path-cover method on the three
-headline instances, validates the generated outputs, and prints a Markdown table.
+This command runs the main method on Small, Medium, and Large. It validates the
+outputs and prints a table.
 
 ```bash
 .venv/bin/python scripts/run_sml_experiments.py
@@ -99,7 +99,7 @@ Run one headline instance only:
 .venv/bin/python scripts/run_sml_experiments.py --only Large
 ```
 
-Faster smoke test:
+Quick test:
 
 ```bash
 .venv/bin/python scripts/run_sml_experiments.py --quick
@@ -107,15 +107,15 @@ Faster smoke test:
 
 ## Run All Senior Instances
 
-This command runs all available senior instances. For Small, Medium, and Large it
-uses the optimized headline search by default. For the other instances it uses
-the robust charging-aware path-cover pipeline.
+This command runs all available senior instances. Small, Medium, and Large use
+the optimized headline search. The other instances use the robust
+charging-aware path-cover pipeline.
 
 ```bash
 .venv/bin/python scripts/run_all_experiments.py
 ```
 
-Faster all-instance smoke test:
+Quick all-instance test:
 
 ```bash
 .venv/bin/python scripts/run_all_experiments.py --quick-headliners
@@ -129,8 +129,8 @@ outputs/minoa/professor_all/all_instances_report.md
 
 ## Validate Existing Input/Output Pairs
 
-Use `minoa_report.py` when you already have output JSON files and want a
-validator-backed table.
+Use `minoa_report.py` if output JSON files already exist and you only want to
+check them with the validator and print a table.
 
 ```bash
 .venv/bin/python scripts/minoa_report.py \
@@ -141,7 +141,7 @@ validator-backed table.
 
 ## Headline Results
 
-The current best headline results are:
+Current headline results:
 
 | Instance | Approach | Valid | Cost | Vehicles | EV | ICE | EV share | Trips | Deadhead min | Break min | Charge min |
 |---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
@@ -160,8 +160,7 @@ Headline totals:
 
 ## Algorithm Comparison
 
-The following table compares the main algorithmic variants tested on the
-headline instances.
+This table shows how the method improved step by step.
 
 | Instance | Method | Valid | Cost | Vehicles | EV | ICE | EV share | Trips | Possible trips | Selected | Deadhead | Break | Charge |
 |---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
@@ -180,7 +179,7 @@ headline instances.
 
 ## All-Instance Results
 
-The all-instance run covers the following 12 senior instances:
+The all-instance run covers these 12 senior instances:
 
 ```text
 Small, Medium, Large, Toy Example,
@@ -212,7 +211,7 @@ Workflow file:
 .github/workflows/minoa-headline-instances.yml
 ```
 
-This runs three separate jobs:
+This workflow runs three separate jobs:
 
 ```text
 small
@@ -220,9 +219,8 @@ medium
 large
 ```
 
-Each job runs the optimized solver, validates the result with the desktop
-validator, prints a result table in the Actions log, and uploads output JSON,
-log, and Markdown report artifacts.
+Each job runs the solver, validates the output, shows a result table, and uploads
+the generated files as artifacts.
 
 Manual run:
 
@@ -239,9 +237,8 @@ Workflow file:
 .github/workflows/minoa-all-instances.yml
 ```
 
-This runs the full senior benchmark, validates every generated output, prints
-the full table in the Actions log, and uploads generated outputs and processed
-working inputs.
+This workflow runs the full senior benchmark. It validates every generated
+output and shows the full table on the run summary page.
 
 Manual run:
 

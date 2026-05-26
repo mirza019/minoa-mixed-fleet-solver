@@ -1,46 +1,45 @@
 # Scripts
 
-This folder contains the executable entry points for solving MINOA instances,
-validating generated outputs, producing result tables, and creating thesis
-support material.
+This folder contains the Python commands used to run the MINOA experiments.
+Most users only need the two runner scripts below.
 
-## Recommended Commands
+## Start Here
 
-Use these two scripts for normal reproducible experiments:
+Run the main Small, Medium, and Large experiments:
 
 ```bash
 .venv/bin/python scripts/run_sml_experiments.py
+```
+
+Run all available senior instances:
+
+```bash
 .venv/bin/python scripts/run_all_experiments.py
 ```
 
-`run_sml_experiments.py` is the professor-friendly headline runner for Small,
-Medium, and Large. It uses the multi-start path-cover method and prints a
-validator-backed table.
+Both commands create output JSON files, call the official desktop validator, and
+print a result table.
 
-`run_all_experiments.py` runs every available senior instance. It keeps raw data
-unchanged, creates processed working copies when needed, solves the instances,
-validates the outputs, and prints one all-instance result table.
+## What Each Script Does
 
-## Main Entry Points
-
-| File | Purpose |
+| File | What it does |
 |---|---|
-| `run_sml_experiments.py` | Runs Small, Medium, and Large with the optimized multi-start path-cover method. |
-| `run_all_experiments.py` | Runs the full senior benchmark through the automatic pipeline. |
-| `minoa_solver.py` | Solves one instance with a selected constructive builder. Useful for quick checks. |
-| `minoa_optimize.py` | Runs multi-start/local-search variants for stronger single-instance results. |
-| `minoa_pipeline.py` | Normalizes raw inputs into validator-safe working copies, solves, validates, repairs parking overflows when possible, and reports all rows. |
-| `minoa_report.py` | Takes existing input/output pairs, runs the official validator, and prints a Markdown table. |
-| `minoa_make_latex_thesis.py` | Generates LaTeX thesis-support material from experiment data. |
-| `minoa_make_thesis.py` | Generates document-style thesis-support material. |
-| `minoa_thesis_report.py` | Builds thesis-oriented summaries and figures from available reports. |
+| `run_sml_experiments.py` | Main runner for Small, Medium, and Large. This is the easiest command for checking the headline thesis results. |
+| `run_all_experiments.py` | Runs the full senior benchmark and reports all instances in one table. |
+| `minoa_solver.py` | Solves one input file with one selected builder. Useful for quick manual tests. |
+| `minoa_optimize.py` | Runs the stronger multi-start search used for the best Small, Medium, and Large results. |
+| `minoa_pipeline.py` | Runs the automatic all-instance pipeline. It prepares working input copies, solves, validates, and reports. |
+| `minoa_report.py` | Takes existing input/output pairs and creates a validator-based result table. |
+| `minoa_make_latex_thesis.py` | Helper script for generating LaTeX thesis material. |
+| `minoa_make_thesis.py` | Helper script for generating thesis-style documentation. |
+| `minoa_thesis_report.py` | Helper script for thesis summaries and figures. |
 
-## Subfolders
+## Folder Structure
 
-| Folder | Purpose |
+| Folder | Meaning |
 |---|---|
-| `minoa_lib/` | Reusable solver modules. The real implementation logic lives here. |
-| `ci/` | Shell wrappers used by GitHub Actions workflows. |
+| `minoa_lib/` | Main solver implementation, split into smaller modules. |
+| `ci/` | Small shell scripts used by GitHub Actions. |
 
-Generated outputs are written under `outputs/`, which is intentionally ignored
-by Git.
+Generated files are written to `outputs/`. They are not tracked in Git because
+they can be produced again by running the scripts.

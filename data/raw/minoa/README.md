@@ -1,10 +1,13 @@
 # MINOA Raw Data
 
-This folder stores professor-provided MINOA challenge data.
+This folder contains the MINOA data files used in the experiments.
 
-The raw input files are treated as source data. The solver and pipeline do not
-edit them in place. If an input needs a small compatibility normalization, the
-pipeline writes a processed working copy under `data/processed/`, which is
-ignored by Git and can be regenerated.
+The raw files should stay unchanged. If the pipeline needs a small working copy
+adjustment, it writes that copy to `data/processed/`. This keeps the original
+data clean and makes the experiment easier to reproduce.
 
-See `data/raw/minoa/senior/README.md` for the senior instance list.
+The senior instance list is described in:
+
+```text
+data/raw/minoa/senior/README.md
+```

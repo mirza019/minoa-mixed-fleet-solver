@@ -1,23 +1,23 @@
 # MINOA Senior Instances
 
-This folder contains the senior MINOA JSON instances used in the experiments.
+This folder contains the senior MINOA JSON input files used by the solver.
 
-## Headline Instances
+## Main Thesis Instances
 
-These are the main instances discussed in the thesis results:
+These are the three headline instances:
 
-| File | Thesis name |
+| File | Name in reports |
 |---|---|
 | `Small_Input_S.json` | Small |
 | `Medium_Input_S.json` | Medium |
 | `Large_Input_S.json` | Large |
 
-## Additional Senior Instances
+## Additional Instances
 
-These are used as an additional robustness benchmark and are reported
-separately from the headline instances:
+These instances are used as extra tests. They are useful for showing that the
+pipeline also works beyond Small, Medium, and Large.
 
-| File | Thesis name |
+| File | Name in reports |
 |---|---|
 | `Toy_Example_Input_S.json` | Toy Example |
 | `1line_input_S.json` | 1line |
@@ -29,11 +29,10 @@ separately from the headline instances:
 | `5lines_input_S.json` | 5lines |
 | `_8lines_input_S.json` | 8lines |
 
-`Toy_Example_Output_S.json` is a provided example output, not a solver-generated
-result.
+`Toy_Example_Output_S.json` is an example output that came with the data. It is
+not one of the generated thesis results.
 
-## Data Integrity Rule
+## Important Note
 
-Raw files in this folder should remain unchanged. The automatic all-instance
-pipeline creates processed working copies only when needed for validation-safe
-execution.
+Do not edit the raw input files directly. The automatic pipeline creates working
+copies when needed, and those copies are not tracked in Git.

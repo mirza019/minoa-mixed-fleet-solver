@@ -1,45 +1,44 @@
 # GitHub Actions Workflows
 
-This folder contains reproducibility workflows for the MINOA solver.
+This folder contains the GitHub Actions workflows for checking the solver online.
+They are useful when someone wants to run the experiments without setting up
+everything manually.
 
 ## `minoa-headline-instances.yml`
 
-Runs the three headline instances separately:
+This workflow runs the main thesis instances:
 
 ```text
-small, medium, large
+Small, Medium, Large
 ```
 
-Each job:
+For each instance it:
 
-1. Checks out the repository.
-2. Installs Python dependencies.
-3. Installs Java.
-4. Runs the optimized multi-start path-cover solver.
-5. Validates the output with the official desktop validator.
-6. Writes a result table to the GitHub Actions summary.
-7. Uploads output JSON, logs, and Markdown report artifacts.
+1. installs Python and Java,
+2. runs the solver,
+3. validates the generated output with the official desktop validator,
+4. shows a result table on the GitHub Actions summary page,
+5. uploads the output JSON files and logs as artifacts.
 
 ## `minoa-all-instances.yml`
 
-Runs the full senior benchmark.
+This workflow runs all senior instances in one pipeline.
 
-Each run:
+It also writes a clear summary page with:
 
-1. Creates processed working input copies when needed.
-2. Solves every available senior input.
-3. Uses optimized headline search for Small, Medium, and Large.
-4. Uses the robust charging-aware path-cover pipeline for additional instances.
-5. Validates every generated output with the official desktop validator.
-6. Writes documentation, table interpretation, totals, file lists, and artifacts
-   to the GitHub Actions summary.
+- what was run,
+- how to read the table,
+- the result table checked by the validator,
+- total cost and vehicle counts,
+- generated output files,
+- downloadable artifacts.
 
-## Manual Execution on GitHub
+## How to Run on GitHub
 
-1. Open the repository on GitHub.
-2. Go to **Actions**.
-3. Select either workflow.
+1. Open the repository.
+2. Click **Actions**.
+3. Select the workflow.
 4. Click **Run workflow**.
 
-The result table appears on the run summary page. Full JSON outputs and reports
-are available as downloadable artifacts.
+After the run finishes, open the run summary page. The tables and artifacts are
+shown there.

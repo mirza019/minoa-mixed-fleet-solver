@@ -1,45 +1,41 @@
 # `minoa_lib`
 
-This package contains the implementation modules used by the command-line
-scripts in `scripts/`. The code is split by responsibility so the solver is not
-one large file.
+This folder contains the main solver code. The implementation is split into
+small files so the project is easier to read, test, and explain in the thesis.
 
-## Core Solver Modules
+## Main Solver Parts
 
-| File | Responsibility |
+| File | Role in the solver |
 |---|---|
-| `solver.py` | Main orchestration: load an instance, select trips, build blocks, assign fleet, insert activities, and return output JSON. |
-| `timetable.py` | Timetable-feasible trip selection and timetable variant handling. |
-| `network.py` | Compatibility graph construction and path-cover style chaining logic. |
-| `blocks.py` | Vehicle block construction and block-level transformations. |
-| `activities.py` | Output activity creation such as trips, deadheads, pull-in, pull-out, breaks, and charging. |
-| `capacity.py` | Parking and charging capacity checks/helpers. |
-| `ev_assignment.py` | Mixed-fleet assignment logic for deciding whether a block can be EV or ICE. |
-| `ev_battery.py` | EV autonomy simulation and residual battery calculations. |
-| `ev_charging.py` | Charging insertion inside feasible break windows. |
-| `validation.py` | Internal structural validation helpers before external desktop-validator checks. |
-| `time_utils.py` | Time conversions and duration helpers. |
-| `types.py` | Shared type aliases and small data structures. |
-| `cli.py` | Common command-line helper functions. |
+| `solver.py` | Connects all steps: reads input, selects trips, builds vehicle blocks, assigns fleet type, creates activities, and returns the output JSON. |
+| `timetable.py` | Selects trips and creates timetable variants while respecting headway rules. |
+| `network.py` | Builds the trip compatibility graph and supports the path-cover vehicle chaining. |
+| `blocks.py` | Creates and updates vehicle blocks. |
+| `activities.py` | Creates output activities such as trips, deadheads, breaks, charging, pull-out, and pull-in. |
+| `capacity.py` | Checks parking and charging capacity logic. |
+| `ev_assignment.py` | Decides which blocks can be served by EVs and which need ICE buses. |
+| `ev_battery.py` | Simulates EV autonomy along a block. |
+| `ev_charging.py` | Adds charging where there is enough feasible waiting time. |
+| `validation.py` | Contains internal checks before the output is passed to the official validator. |
+| `time_utils.py` | Small helper functions for time and duration handling. |
+| `types.py` | Shared type definitions. |
+| `cli.py` | Shared command-line helper code. |
 
-## Experiment and Thesis Support
+## Experiment Helpers
 
-| Folder | Responsibility |
+| Folder | Role |
 |---|---|
-| `experiments/` | Metrics, Markdown table generation, and plots for reports. |
-| `thesis/` | Thesis-specific content and figure-generation helpers. |
+| `experiments/` | Builds metrics, Markdown tables, and plots. |
+| `thesis/` | Contains helper code for thesis text and figures. |
 
-## Method Structure
+## Method Idea in Simple Words
 
-The main optimization idea is graph-based:
+The solver first selects a valid set of trips. Then it builds a graph:
 
-1. Select a timetable-feasible subset of trips.
-2. Build a compatibility graph where trips are nodes.
-3. Add an arc `i -> j` if one vehicle can serve trip `j` after trip `i`.
-4. Find good path covers; each path becomes one vehicle block.
-5. Assign ICE/EV vehicle types and insert charging where feasible.
-6. Export a MINOA-format output file.
+- each selected trip is a node,
+- an arc `i -> j` means the same bus can serve trip `j` after trip `i`,
+- a path in the graph becomes one vehicle block.
 
-The official desktop validator is not called from these modules as an
-optimization oracle. It is used by the reporting/pipeline scripts as an external
-check for final generated output files.
+After the blocks are built, the solver assigns EV or ICE vehicles and inserts
+charging if it is possible. The official desktop validator is then used outside
+the algorithm to check the final input/output pair.

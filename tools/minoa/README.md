@@ -1,16 +1,16 @@
 # MINOA Tools
 
-This folder contains external tools supplied with the MINOA challenge.
+This folder contains external MINOA tools.
 
 ## Desktop Validator
 
-The official validator JAR is located at:
+The official validator is here:
 
 ```text
 tools/minoa/desktopValidator/desktopValidator/desktopValidator.jar
 ```
 
-It is used as an external feasibility and cost check:
+Example use:
 
 ```bash
 java -jar tools/minoa/desktopValidator/desktopValidator/desktopValidator.jar \
@@ -18,9 +18,7 @@ java -jar tools/minoa/desktopValidator/desktopValidator/desktopValidator.jar \
   outputs/minoa/professor/Small_Output_multi_start_pathcover.json
 ```
 
-The validator files are intentionally left untouched. The solver creates output
-JSON files, then the reporting scripts pass input/output pairs to this validator.
+The validator is only used to check final input/output pairs. It is not changed
+and it is not used as part of the optimization logic.
 
-## Archive
-
-`desktopValidator.7z` is the original validator archive kept for traceability.
+`desktopValidator.7z` is kept as the original validator archive.

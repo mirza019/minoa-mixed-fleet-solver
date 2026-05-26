@@ -1,19 +1,12 @@
 # CI Scripts
 
-This folder contains small shell wrappers used by GitHub Actions. They are kept
-separate from the Python solver so the workflow files stay readable.
+This folder contains the shell scripts used by GitHub Actions. They keep the
+workflow files short and readable.
 
-| File | Used by | Purpose |
+| File | Used in workflow | What it does |
 |---|---|---|
-| `run_headline_instance.sh` | `MINOA Headline Instances` workflow | Runs one of `small`, `medium`, or `large`, validates it, and writes a Markdown report artifact. |
-| `run_all_instances.sh` | `MINOA All Instances` workflow | Runs the full senior benchmark pipeline, validates every output, writes the all-instance report, and fails if any row is invalid. |
+| `run_headline_instance.sh` | `MINOA Headline Instances` | Runs one headline instance: Small, Medium, or Large. It writes output files, validates them, and saves a report. |
+| `run_all_instances.sh` | `MINOA All Instances` | Runs the full senior benchmark and fails the workflow if any instance is not validator-feasible. |
 
-These scripts assume dependencies have already been installed by the workflow:
-
-```bash
-python -m venv .venv
-.venv/bin/python -m pip install -r requirements.txt
-```
-
-They also require Java because the official MINOA desktop validator is a JAR
-file.
+The workflows install Python dependencies and Java before these scripts run.
+Java is needed because the official MINOA validator is a `.jar` file.
