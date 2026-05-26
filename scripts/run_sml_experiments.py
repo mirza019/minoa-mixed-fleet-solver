@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Run MINOA Small/Medium/Large experiments and print validator table.
 
-Professor-friendly command:
+Recommended command:
 
     .venv/bin/python scripts/run_sml_experiments.py
 
@@ -24,7 +24,7 @@ ROOT = Path(__file__).resolve().parents[1]
 HEADLINE_RUNS = {
     "Small": {
         "input": Path("data/raw/minoa/senior/Small_Input_S.json"),
-        "output": Path("outputs/minoa/professor/Small_Output_multi_start_pathcover.json"),
+        "output": Path("outputs/minoa/headline/Small_Output_multi_start_pathcover.json"),
         "variants": 8,
         "iterations": 64,
         "seed": 19,
@@ -32,7 +32,7 @@ HEADLINE_RUNS = {
     },
     "Medium": {
         "input": Path("data/raw/minoa/senior/Medium_Input_S.json"),
-        "output": Path("outputs/minoa/professor/Medium_Output_multi_start_pathcover.json"),
+        "output": Path("outputs/minoa/headline/Medium_Output_multi_start_pathcover.json"),
         "variants": 8,
         "iterations": 48,
         "seed": 103,
@@ -40,7 +40,7 @@ HEADLINE_RUNS = {
     },
     "Large": {
         "input": Path("data/raw/minoa/senior/Large_Input_S.json"),
-        "output": Path("outputs/minoa/professor/Large_Output_multi_start_pathcover.json"),
+        "output": Path("outputs/minoa/headline/Large_Output_multi_start_pathcover.json"),
         "variants": 8,
         "iterations": 24,
         "seed": 23,
@@ -61,7 +61,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--output-dir",
         type=Path,
-        default=Path("outputs/minoa/professor"),
+        default=Path("outputs/minoa/headline"),
         help="Directory where generated output JSON files and logs are written.",
     )
     parser.add_argument(

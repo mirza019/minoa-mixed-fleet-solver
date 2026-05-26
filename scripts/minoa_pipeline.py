@@ -32,7 +32,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--input-dir",
         type=Path,
         default=Path("data/raw/minoa/senior"),
-        help="Directory containing professor-provided raw input JSON files.",
+        help="Directory containing raw input JSON files.",
     )
     parser.add_argument(
         "--processed-dir",

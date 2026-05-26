@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """Run every available MINOA senior instance and print validator table.
 
-Professor-friendly command:
+Recommended command:
 
     .venv/bin/python scripts/run_all_experiments.py
 
 The script creates processed working copies when needed, leaves raw data and
-the professor-provided validator untouched, solves each instance, validates the
+the provided validator untouched, solves each instance, validates the
 outputs, and prints one Markdown result table plus totals.
 """
 
@@ -34,13 +34,13 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--processed-dir",
         type=Path,
-        default=Path("data/processed/minoa/professor_all"),
+        default=Path("data/processed/minoa/all_instances"),
         help="Directory for normalized working copies. Raw files are not modified.",
     )
     parser.add_argument(
         "--output-dir",
         type=Path,
-        default=Path("outputs/minoa/professor_all"),
+        default=Path("outputs/minoa/all_instances"),
         help="Directory for generated output JSON files, report table, and manifest.",
     )
     parser.add_argument(

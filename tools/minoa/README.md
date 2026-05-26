@@ -15,7 +15,7 @@ Example use:
 ```bash
 java -jar tools/minoa/desktopValidator/desktopValidator/desktopValidator.jar \
   data/raw/minoa/senior/Small_Input_S.json \
-  outputs/minoa/professor/Small_Output_multi_start_pathcover.json
+  outputs/minoa/headline/Small_Output_multi_start_pathcover.json
 ```
 
 The validator is only used to check final input/output pairs. It is not changed

@@ -19,8 +19,8 @@ scripts/
   minoa_optimize.py            Multi-start search for stronger headline results
   minoa_pipeline.py            Normalizes raw inputs, solves, validates, reports
   minoa_report.py              Validator-backed table reporter
-  run_sml_experiments.py       Professor-friendly Small/Medium/Large runner
-  run_all_experiments.py       Professor-friendly all-instance runner
+  run_sml_experiments.py       Small/Medium/Large experiment runner
+  run_all_experiments.py       All-instance experiment runner
   minoa_lib/                   Solver modules
 
 data/raw/minoa/senior/
@@ -124,7 +124,7 @@ Quick all-instance test:
 The all-instance report is written to:
 
 ```text
-outputs/minoa/professor_all/all_instances_report.md
+outputs/minoa/all_instances/all_instances_report.md
 ```
 
 ## Validate Existing Input/Output Pairs
@@ -134,9 +134,9 @@ check them with the validator and print a table.
 
 ```bash
 .venv/bin/python scripts/minoa_report.py \
-  data/raw/minoa/senior/Small_Input_S.json:outputs/minoa/professor/Small_Output_multi_start_pathcover.json \
-  data/raw/minoa/senior/Medium_Input_S.json:outputs/minoa/professor/Medium_Output_multi_start_pathcover.json \
-  data/raw/minoa/senior/Large_Input_S.json:outputs/minoa/professor/Large_Output_multi_start_pathcover.json
+  data/raw/minoa/senior/Small_Input_S.json:outputs/minoa/headline/Small_Output_multi_start_pathcover.json \
+  data/raw/minoa/senior/Medium_Input_S.json:outputs/minoa/headline/Medium_Output_multi_start_pathcover.json \
+  data/raw/minoa/senior/Large_Input_S.json:outputs/minoa/headline/Large_Output_multi_start_pathcover.json
 ```
 
 ## Headline Results
