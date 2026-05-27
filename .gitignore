@@ -36,6 +36,7 @@ tools/minoa/desktopValidator/desktopValidator/*
 !tools/minoa/desktopValidator/desktopValidator/desktopValidator.jar
 
 # Thesis, LaTeX, and documentation artifacts
+FAU_Thesis_temp/
 thesis-templates-master/
 thesis-build-nobib/
 thesis-templates-master.zip
