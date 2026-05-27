@@ -5,10 +5,15 @@ import json
 import time
 from pathlib import Path
 
-from .blocks import build_chained_ice_blocks, build_path_cover_blocks, build_weighted_path_cover_blocks
+from .blocks import (
+    build_chained_ice_blocks,
+    build_path_cover_blocks,
+    build_weighted_path_cover_blocks,
+)
 from .ev_assignment import assign_charging_aware_evs, assign_no_charge_evs
+from .reporting import cpu_report, fixed_vehicle_lower_bound
 from .timetable import select_direction_trips
-from .types import CPU_REPORT, JsonDict, SelectedTrip
+from .types import JsonDict, SelectedTrip
 
 
 def solve(
@@ -65,8 +70,8 @@ def solve(
         stats["evs"] = assign_charging_aware_evs(data, output["vehicleBlockList"])
 
     output["reportSol"] = {
-        "listCpuType": [CPU_REPORT],
-        "lowerBound": 0,
+        "listCpuType": [cpu_report()],
+        "lowerBound": fixed_vehicle_lower_bound(data, output),
         "executionTime": round(time.perf_counter() - start, 3),
     }
     stats["blocks"] = len(output["vehicleBlockList"])

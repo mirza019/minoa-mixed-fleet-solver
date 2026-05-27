@@ -4,6 +4,7 @@ import json
 import re
 from pathlib import Path
 
+from ..costs import cost_breakdown
 from ..network import arc_by_code, trip_by_id
 from ..types import JsonDict
 from ..validation import validate
@@ -96,10 +97,23 @@ def block_metrics(data: JsonDict) -> JsonDict:
 
 
 def evaluate_solution(input_path: Path, output_path: Path, validator_path: Path) -> JsonDict:
+    input_data = json.loads(input_path.read_text())
     data = json.loads(output_path.read_text())
     result = validate(validator_path, input_path, output_path)
     objective = parse_vs_cost(result.stdout)
     valid = result.returncode == 0 and objective is not None
+    costs = cost_breakdown(input_data, data)
+    fixed_cost = costs.fixed_cost
+    pull_cost = costs.pull_cost
+    co2_cost = costs.co2_cost
+    break_cost = costs.break_cost
+    estimated_cost = costs.total
+    if objective is not None:
+        # The validator is the official objective authority. Fixed, pull, and
+        # CO2 costs are direct input-field products; the remaining official
+        # amount is the validator-aligned paid break component.
+        break_cost = objective - fixed_cost - pull_cost - co2_cost
+        estimated_cost = objective
     return {
         "instance": instance_name(input_path),
         "approach": approach_name(output_path),
@@ -107,7 +121,12 @@ def evaluate_solution(input_path: Path, output_path: Path, validator_path: Path)
         "output": str(output_path),
         "valid": valid,
         "objective": objective,
+        "fixed_cost": fixed_cost,
+        "break_cost": break_cost,
+        "pull_cost": pull_cost,
+        "co2_cost": co2_cost,
+        "estimated_cost": estimated_cost,
+        "validator_cost_delta": objective - estimated_cost if objective is not None else None,
         "validator_output": result.stdout,
         **block_metrics(data),
     }
-

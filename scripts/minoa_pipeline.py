@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any
 
 from minoa_lib.experiments.metrics import block_metrics, instance_name, parse_vs_cost
+from minoa_lib.costs import cost_breakdown
 from minoa_optimize import variant_vectors
 from minoa_lib.solver import solve
 
@@ -287,6 +288,7 @@ def run_validator(validator: Path, input_path: Path, output_path: Path) -> str:
 def success_row(input_path: Path, output_path: Path, cost: float, approach: str) -> dict[str, Any]:
     row = metrics_row(input_path, output_path, approach)
     row.update({"Valid": "yes", "Cost": cost, "Best cost": cost, "Gap to best (%)": 0.0, "Error": ""})
+    add_cost_components(row, input_path, output_path, cost)
     return row
 
 
@@ -296,6 +298,10 @@ def metrics_row(input_path: Path, output_path: Path, approach: str) -> dict[str,
         "Approach": approach,
         "Valid": "no",
         "Cost": None,
+        "Fixed": None,
+        "Break cost": None,
+        "Pull cost": None,
+        "CO2 cost": None,
         "Best cost": None,
         "Gap to best (%)": None,
         "Vehicles": None,
@@ -335,6 +341,10 @@ def error_row(instance: str, approach: str, error: str) -> dict[str, Any]:
         "Approach": approach,
         "Valid": "no",
         "Cost": None,
+        "Fixed": None,
+        "Break cost": None,
+        "Pull cost": None,
+        "CO2 cost": None,
         "Best cost": None,
         "Gap to best (%)": None,
         "Vehicles": None,
@@ -360,12 +370,34 @@ def summarize_error(text: str) -> str:
     return "validator rejected output"
 
 
+def add_cost_components(row: dict[str, Any], input_path: Path, output_path: Path, validator_cost: float) -> None:
+    try:
+        input_data = json.loads(input_path.read_text())
+        output_data = json.loads(output_path.read_text())
+        costs = cost_breakdown(input_data, output_data)
+        break_cost = validator_cost - costs.fixed_cost - costs.pull_cost - costs.co2_cost
+        row.update(
+            {
+                "Fixed": costs.fixed_cost,
+                "Break cost": break_cost,
+                "Pull cost": costs.pull_cost,
+                "CO2 cost": costs.co2_cost,
+            }
+        )
+    except Exception as exc:
+        row["Error"] = row.get("Error") or str(exc)
+
+
 def markdown_table(rows: list[dict[str, Any]]) -> str:
     headers = [
         "Instance",
         "Approach",
         "Valid",
         "Cost",
+        "Fixed",
+        "Break cost",
+        "Pull cost",
+        "CO2 cost",
         "Best cost",
         "Gap to best (%)",
         "Vehicles",
