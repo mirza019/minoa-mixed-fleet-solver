@@ -4,7 +4,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from textwrap import fill
+import json
 
 
 ROWS = [
@@ -66,6 +66,7 @@ def main() -> None:
     make_resource_pressure(out_dir / "fig25_all_instance_resource_pressure.png")
     make_efficiency_panel(out_dir / "fig26_all_instance_efficiency_panel.png")
     make_cost_audit_panel(out_dir / "fig27_all_instance_cost_audit.png")
+    make_vehicle_journey_figure(out_dir / "fig28_ev_ice_vehicle_journey.png")
 
 
 def make_constraint_matrix(path: Path) -> None:
@@ -379,6 +380,194 @@ def make_cost_audit_panel(path: Path) -> None:
     fig.tight_layout(rect=(0, 0.04, 1, 1))
     fig.savefig(path)
     plt.close(fig)
+
+
+def make_vehicle_journey_figure(path: Path) -> None:
+    import matplotlib.pyplot as plt
+    from matplotlib.patches import Patch
+
+    medium_data = _load_json(Path("data/raw/minoa/senior/Medium_Input_S.json"))
+    medium_output = _load_json(Path("outputs/minoa/all_multistart/Medium_Instance_S_Output_pipeline.json"))
+    large_data = _load_json(Path("data/raw/minoa/senior/Large_Input_S.json"))
+    large_output = _load_json(Path("outputs/minoa/all_multistart/Large_Instance_S_Output_pipeline.json"))
+
+    ev_block = _select_block(medium_output, "electric", prefer_charging=True)
+    ice_block = _select_block(large_output, "ICE", prefer_charging=False)
+    ev_segments, ev_stats = _block_segments(medium_data, ev_block)
+    ice_segments, ice_stats = _block_segments(large_data, ice_block)
+
+    all_segments = ev_segments + ice_segments
+    start = min(segment[0] for segment in all_segments)
+    end = max(segment[1] for segment in all_segments)
+    start_hour = int(start // 3600)
+    end_hour = int(end // 3600) + 1
+
+    colors = {
+        "trip": "#26736d",
+        "deadhead": "#536878",
+        "break": "#c7d2fe",
+        "charge": "#f2b447",
+    }
+    labels = {
+        "trip": "Passenger trip",
+        "deadhead": "Pull/deadhead",
+        "break": "Parking/break",
+        "charge": "Charging",
+    }
+
+    fig, ax = plt.subplots(figsize=(12.0, 5.8), dpi=180)
+    fig.suptitle("Validated Vehicle Journey Example: EV and ICE Blocks", y=0.975, fontsize=15)
+    ax.text(
+        0.5,
+        0.925,
+        "Segments are taken from validator-accepted outputs. The labels show how activity types enter feasibility and cost.",
+        ha="center",
+        transform=fig.transFigure,
+        fontsize=9,
+        color="#5d6a78",
+    )
+
+    _draw_journey_lane(ax, ev_segments, y=20, colors=colors, max_labels=12)
+    _draw_journey_lane(ax, ice_segments, y=8, colors=colors, max_labels=10)
+
+    ax.set_yticks([23, 11], ["Medium EV block", "Large ICE block"])
+    ax.set_ylim(2, 30)
+    ax.set_xlim(start_hour * 3600, end_hour * 3600)
+    ticks = list(range(start_hour * 3600, (end_hour + 1) * 3600, 3600))
+    ax.set_xticks(ticks, [_hhmm(tick) for tick in ticks])
+    ax.set_xlabel("Time of day")
+    ax.grid(axis="x", color="#dde2e6", linewidth=0.8)
+    ax.spines[["top", "right", "left"]].set_visible(False)
+    ax.tick_params(axis="y", length=0)
+
+    handles = [Patch(facecolor=color, edgecolor="#1f2937", label=labels[key]) for key, color in colors.items()]
+    ax.legend(handles=handles, ncol=4, frameon=False, loc="upper center", bbox_to_anchor=(0.5, -0.14))
+
+    ev_text = (
+        f"EV: {ev_stats['trips']} trips, {ev_stats['deadhead_min']:.0f} deadhead min, "
+        f"{ev_stats['break_min']:.0f} break min, {ev_stats['charge_min']:.0f} charge min; "
+        "CO2 cost = 0"
+    )
+    ice_text = (
+        f"ICE: {ice_stats['trips']} trips, {ice_stats['deadhead_min']:.0f} deadhead min, "
+        f"{ice_stats['break_min']:.0f} break min, no charging; "
+        "CO2 cost applies to driving"
+    )
+    ax.text(start_hour * 3600, 27.7, ev_text, fontsize=8.3, color="#1f2937", va="center")
+    ax.text(start_hour * 3600, 15.7, ice_text, fontsize=8.3, color="#1f2937", va="center")
+
+    fig.text(
+        0.5,
+        0.02,
+        "Cost link: every used block pays fixed vehicle cost; deadhead/pull driving contributes pull and CO2 terms; break time contributes break cost; charging affects EV feasibility and capacity.",
+        ha="center",
+        fontsize=8,
+        color="#495057",
+    )
+    fig.tight_layout(rect=(0, 0.09, 1, 0.88))
+    fig.savefig(path)
+    plt.close(fig)
+
+
+def _draw_journey_lane(ax, segments, y, colors, max_labels) -> None:
+    label_count = 0
+    for start, end, kind, label in segments:
+        if end <= start:
+            continue
+        ax.broken_barh(
+            [(start, end - start)],
+            (y, 6),
+            facecolors=colors[kind],
+            edgecolors="#1f2937",
+            linewidth=0.7,
+            alpha=0.95,
+        )
+        duration_min = (end - start) / 60
+        if kind in {"trip", "charge"} and label_count < max_labels and duration_min >= 7:
+            ax.text(
+                (start + end) / 2,
+                y + 3,
+                label,
+                ha="center",
+                va="center",
+                fontsize=6.2,
+                color="white" if kind == "trip" else "#1f2937",
+                weight="bold" if kind == "charge" else "normal",
+            )
+            label_count += 1
+
+
+def _block_segments(data, block) -> tuple[list[tuple[float, float, str, str]], dict[str, float]]:
+    trips = _trip_index(data)
+    segments = []
+    stats = {"trips": 0, "deadhead_min": 0.0, "break_min": 0.0, "charge_min": 0.0}
+    for activity in block["vehicleBlock"]["activityList"]:
+        if "activityTrip" in activity:
+            trip_id = activity["activityTrip"]["tripId"]
+            trip = trips[trip_id]
+            segments.append((trip["startTime"], trip["endTime"], "trip", f"T{stats['trips'] + 1}"))
+            stats["trips"] += 1
+        elif "deadhead" in activity:
+            deadhead = activity["deadhead"]
+            start = deadhead["startingTime"]
+            end = deadhead["endingTime"]
+            segments.append((start, end, "deadhead", "D"))
+            stats["deadhead_min"] += (end - start) / 60
+        elif "break" in activity:
+            for wrapper in activity["break"].get("breakTimeWindows", []):
+                window = wrapper["breakTimeWindow"]
+                start = window["startTime"]
+                end = window["endTime"]
+                kind = "charge" if window.get("isCharging") else "break"
+                segments.append((start, end, kind, "CH" if kind == "charge" else "B"))
+                if kind == "charge":
+                    stats["charge_min"] += (end - start) / 60
+                else:
+                    stats["break_min"] += (end - start) / 60
+    return sorted(segments), stats
+
+
+def _select_block(output, vehicle_type: str, prefer_charging: bool):
+    candidates = []
+    for block in output["vehicleBlockList"]:
+        current_type = block["vehicleBlock"]["vehicleTypeName"].lower()
+        if current_type != vehicle_type.lower():
+            continue
+        charges = 0
+        trips = 0
+        for activity in block["vehicleBlock"]["activityList"]:
+            if "activityTrip" in activity:
+                trips += 1
+            if "break" in activity:
+                for wrapper in activity["break"].get("breakTimeWindows", []):
+                    if wrapper["breakTimeWindow"].get("isCharging"):
+                        charges += 1
+        candidates.append((charges, trips, block))
+    if not candidates:
+        raise ValueError(f"No {vehicle_type} block found.")
+    if prefer_charging:
+        return max(candidates, key=lambda item: (item[0], item[1]))[2]
+    return max(candidates, key=lambda item: item[1])[2]
+
+
+def _trip_index(data) -> dict[int, dict]:
+    trips = {}
+    for direction_wrapper in data["directions"]:
+        direction = direction_wrapper.get("direction", direction_wrapper)
+        for trip_wrapper in direction.get("tripList", direction.get("trips", [])):
+            trip = trip_wrapper.get("trip", trip_wrapper)
+            trips[trip["tripId"]] = trip
+    return trips
+
+
+def _load_json(path: Path):
+    with path.open() as handle:
+        return json.load(handle)
+
+
+def _hhmm(seconds: float) -> str:
+    minutes = int(seconds // 60)
+    return f"{minutes // 60:02d}:{minutes % 60:02d}"
 
 
 def _draw_box(ax, x, y, w, h, num, title, body, badge_color="#2563eb") -> None:
