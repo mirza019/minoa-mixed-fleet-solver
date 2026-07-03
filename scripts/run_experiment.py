@@ -152,6 +152,8 @@ def run_all(args: argparse.Namespace) -> None:
         ]
         if args.quick:
             command.append("--quick-headliners")
+        else:
+            command.append("--optimized-all")
         subprocess.run(command, cwd=ROOT, check=True)
         return
 

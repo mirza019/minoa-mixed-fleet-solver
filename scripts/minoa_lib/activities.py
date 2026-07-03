@@ -4,6 +4,15 @@ from .network import deadhead_arcs, deadhead_duration
 from .types import JsonDict
 
 
+def output_spot_name(spot: str) -> str:
+    lowered = spot.lower()
+    if lowered in {"slowcharge", "slowcharging"}:
+        return "slowCharging"
+    if lowered in {"fastcharge", "fastcharging"}:
+        return "fastCharging"
+    return "parking"
+
+
 def activity_trip(trip_id: int) -> JsonDict:
     return {"activityTrip": {"tripId": trip_id}}
 
@@ -33,7 +42,7 @@ def activity_break(
                     "breakTimeWindow": {
                         "startTime": int(start),
                         "endTime": int(end),
-                        "typeSpot": spot,
+                        "typeSpot": output_spot_name(spot),
                         "isCharging": charging,
                     }
                 }
@@ -52,4 +61,3 @@ def pull_in_activity(data: JsonDict, end_node: str, trip_end: int) -> JsonDict:
     arc = deadhead_arcs(data)[(end_node, "pullIn")]
     dur = deadhead_duration(data, arc, trip_end)
     return activity_deadhead(trip_end, trip_end + dur, arc["deadheadArcCode"])
-

@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import json
 import platform
 import subprocess
+from pathlib import Path
 
-from .costs import vehicle_cost_specs
+from .lower_bounds import selected_timetable_fixed_cost_lower_bound
 from .types import JsonDict
 
 
@@ -11,13 +13,13 @@ def cpu_report() -> JsonDict:
     processor = _processor_name()
     machine = platform.machine()
     system = platform.system()
-    description = f"{processor} ({machine}), {system}; benchmark not measured"
+    description = f"{processor} ({machine}), {system}; NBench performance indices not reproduced"
     return {
         "cpuType": {
             "description": description,
             "numberCpu": 1,
-            "cpuIntegerIndex": 1.0,
-            "cpuFloatIndex": 1.0,
+            "cpuIntegerIndex": 0.0,
+            "cpuFloatIndex": 0.0,
         }
     }
 
@@ -40,26 +42,25 @@ def _processor_name() -> str:
 
 
 def fixed_vehicle_lower_bound(data: JsonDict, output: JsonDict) -> float:
-    """Conservative objective lower bound based on simultaneous selected trips.
+    """Backward-compatible wrapper for the selected-timetable fixed-cost bound."""
+    return selected_timetable_fixed_cost_lower_bound(data, output).fixed_cost_lb
 
-    At any time, each active passenger trip requires a different vehicle. The
-    maximum number of simultaneously active selected trips is therefore a lower
-    bound on the number of used vehicle blocks. Multiplying it by the cheapest
-    fixed vehicle usage cost gives a valid, simple lower bound on the full
-    MINOA vehicle-scheduling objective.
-    """
-    events: list[tuple[int, int]] = []
-    for direction_wrap in output.get("directions", []):
-        for trip_wrap in direction_wrap["direction"].get("trips", []):
-            trip = trip_wrap["trip"]
-            events.append((int(trip["startTime"]), 1))
-            events.append((int(trip["endTime"]), -1))
 
-    active = 0
-    max_active = 0
-    for _time, delta in sorted(events, key=lambda item: (item[0], item[1])):
-        active += delta
-        max_active = max(max_active, active)
-
-    min_fixed_cost = min(spec.usage_cost for spec in vehicle_cost_specs(data).values())
-    return round(max_active * min_fixed_cost, 3)
+def update_report_sol(
+    output_path: Path,
+    *,
+    upper_bound: float | None = None,
+    execution_time: float | None = None,
+    global_lower_bound: float | None = None,
+) -> None:
+    data = json.loads(output_path.read_text())
+    report = data.setdefault("reportSol", {})
+    if upper_bound is not None:
+        report["upperBound"] = round(float(upper_bound), 3)
+    if execution_time is not None:
+        report["executionTime"] = round(float(execution_time), 3)
+    if global_lower_bound is not None:
+        report["lowerBound"] = round(float(global_lower_bound), 3)
+    elif "lowerBound" not in report:
+        report["lowerBound"] = 0.0
+    output_path.write_text(json.dumps(data, indent=2))

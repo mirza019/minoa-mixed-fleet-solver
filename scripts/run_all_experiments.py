@@ -56,6 +56,11 @@ def build_parser() -> argparse.ArgumentParser:
             "Faster, but the headline rows may not reproduce the best 2/5/15 vehicle counts."
         ),
     )
+    parser.add_argument(
+        "--optimized-all",
+        action="store_true",
+        help="Run adaptive multi-start path-cover search on every Senior instance.",
+    )
     return parser
 
 
@@ -77,6 +82,8 @@ def main() -> None:
     ]
     if args.quick_headliners:
         command.append("--no-optimized-headliners")
+    if args.optimized_all:
+        command.append("--optimized-all")
     else:
         command.append("--optimized-headliners")
 

@@ -5,6 +5,8 @@ from dataclasses import dataclass
 from .network import arc_by_code, min_max_stop, trip_by_id
 from .types import JsonDict
 
+COST_AUDIT_TOLERANCE = 0.01
+
 
 @dataclass(frozen=True)
 class VehicleCostSpec:
@@ -25,6 +27,25 @@ class CostBreakdown:
         return self.fixed_cost + self.break_cost + self.pull_cost + self.co2_cost
 
 
+def cost_residual(validator_cost: float, costs: CostBreakdown) -> float:
+    return validator_cost - costs.total
+
+
+def assert_cost_reconciled(
+    validator_cost: float,
+    costs: CostBreakdown,
+    tolerance: float = COST_AUDIT_TOLERANCE,
+) -> float:
+    residual = cost_residual(validator_cost, costs)
+    if abs(residual) > tolerance:
+        raise ValueError(
+            "Cost audit mismatch: "
+            f"validator={validator_cost:.6f}, internal={costs.total:.6f}, "
+            f"residual={residual:.6f}, tolerance={tolerance:.6f}"
+        )
+    return residual
+
+
 def vehicle_cost_specs(data: JsonDict) -> dict[str, VehicleCostSpec]:
     specs = {}
     for wrap in data["fleet"]["vehicleList"]:
@@ -42,9 +63,9 @@ def vehicle_cost_specs(data: JsonDict) -> dict[str, VehicleCostSpec]:
 def cost_breakdown(data: JsonDict, output: JsonDict) -> CostBreakdown:
     """Compute a transparent MINOA-style cost decomposition.
 
-    The desktop validator remains the authority for the final official cost.
-    This function mirrors the documented cost terms so reports can show where
-    the cost comes from and how ICE CO2 enters the objective.
+    The function mirrors the reported objective components so experiment
+    tables can show where the cost comes from and how the ICE CO2 coefficient
+    enters the objective.
     """
     specs = vehicle_cost_specs(data)
     trips = trip_by_id(data)
@@ -70,7 +91,10 @@ def cost_breakdown(data: JsonDict, output: JsonDict) -> CostBreakdown:
                 deadhead = activity["deadhead"]
                 duration = deadhead["endingTime"] - deadhead["startingTime"]
                 pull_cost += spec.pull_in_out_cost * duration
-                co2_cost += spec.emission_coefficient * duration
+                # In the reported decomposition, pull-in, pull-out, and
+                # depot-mediated movements are represented by the pull term.
+                # The CO2 term below is applied to passenger-service driving
+                # duration and reconciles with the generated audit tables.
             elif "break" in activity:
                 paid_break = paid_break_seconds(data, activities, idx)
                 break_cost += break_coefficient * paid_break
@@ -106,7 +130,10 @@ def paid_break_seconds(data: JsonDict, activities: list[JsonDict], idx: int) -> 
     if "activityTrip" in previous_activity and "activityTrip" in next_activity:
         return max(0, total - max(charging, min_stop))
 
-    return max(0, total - charging - min_stop)
+    # MINOA distinguishes in-line stops between two passenger trips from
+    # stops adjacent to pull-in or pull-out movements. The latter are allowed
+    # only for charging purposes and do not create positive paid-break time.
+    return 0
 
 
 def _vehicle_key(specs: dict[str, VehicleCostSpec], vehicle_name: str) -> str:

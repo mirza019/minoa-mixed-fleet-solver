@@ -5,6 +5,8 @@ import os
 import networkx as nx
 
 from .activities import activity_break, activity_deadhead, activity_trip, pull_in_activity, pull_out_activity
+from .capacity import preferred_charging_spots
+from .ev_battery import electric_spec
 from .network import deadhead_arcs, deadhead_duration, min_max_stop
 from .types import JsonDict, SelectedTrip
 
@@ -194,12 +196,23 @@ def build_path_cover_blocks(data: JsonDict, selected_items: list[SelectedTrip]) 
     return vehicle_blocks
 
 
-def bridge_cost_seconds(bridge: list[JsonDict]) -> int:
+def bridge_cost_seconds(
+    bridge: list[JsonDict],
+    data: JsonDict | None = None,
+    prev: SelectedTrip | None = None,
+    nxt: SelectedTrip | None = None,
+    *,
+    mode: str = "time",
+) -> int:
     """Approximate connection cost used to choose better path covers.
 
-    The official objective is computed by the validator after EV assignment.
-    Here we use a solver-side surrogate that strongly prefers less waiting and
-    less depot movement among matchings with the same number of vehicles.
+    The official objective is reconstructed internally after EV assignment and
+    audited externally for the selected output.  Here we use a solver-side
+    surrogate that strongly prefers fewer vehicles first and then lower-cost
+    successor choices among matchings with the same cardinality.  The
+    charging-aware modes add small penalties and bonuses for EV-relevant break
+    structure; complete candidate schedules are ranked by the internal
+    objective.
     """
     cost = 0
     for activity in bridge:
@@ -214,15 +227,84 @@ def bridge_cost_seconds(bridge: list[JsonDict]) -> int:
                 cost += end - start
             else:
                 cost += (end - start) // 10
+
+    if mode in {"ev", "charging", "balanced"} and data is not None:
+        cost += charging_edge_adjustment(data, bridge, mode=mode)
+        if prev is not None and nxt is not None:
+            cost += successor_pressure_adjustment(data, prev, nxt, mode=mode)
     return cost
 
 
-def build_weighted_path_cover_blocks(data: JsonDict, selected_items: list[SelectedTrip]) -> list[JsonDict]:
+def charging_edge_adjustment(data: JsonDict, bridge: list[JsonDict], *, mode: str) -> int:
+    """Return an EV-aware edge-cost adjustment in seconds.
+
+    A connection with an existing break at a charging-capable terminal is more
+    useful for future EV conversion than a connection with only depot waiting
+    or no charging opportunity.  The adjustment remains deliberately bounded:
+    it can break ties inside the weighted path cover, but it cannot dominate
+    the primary maximum-cardinality objective.
+    """
+    spec = electric_spec(data)
+    if spec is None:
+        return 0
+
+    adjustment = 0
+    for activity in bridge:
+        if "break" not in activity:
+            continue
+        node = activity["break"]["nameNode"]
+        windows = activity["break"]["breakTimeWindows"]
+        start = int(windows[0]["breakTimeWindow"]["startTime"])
+        end = int(windows[-1]["breakTimeWindow"]["endTime"])
+        duration = max(0, end - start)
+        has_charger = bool(preferred_charging_spots(data, node))
+        if node.lower() == "dep":
+            adjustment += min(duration // 8, 900)
+        elif has_charger and duration >= spec.min_charging_time:
+            bonus = min(duration // 3, 900)
+            adjustment -= bonus if mode != "ev" else bonus // 2
+        elif duration >= spec.min_charging_time:
+            adjustment += min(duration // 12, 300)
+    return adjustment
+
+
+def successor_pressure_adjustment(
+    data: JsonDict,
+    prev: SelectedTrip,
+    nxt: SelectedTrip,
+    *,
+    mode: str,
+) -> int:
+    """Penalize successor choices that make EV conversion harder.
+
+    The term is based on the immediate driving distance around an edge.  It is
+    not a feasibility proof; it is only a scoring hint for matching.  Full EV
+    autonomy, charging, and capacity feasibility are still checked later.
+    """
+    spec = electric_spec(data)
+    if spec is None:
+        return 0
+    distance = float(prev["trip"].get("lengthTrip", 0.0)) + float(nxt["trip"].get("lengthTrip", 0.0))
+    pressure = distance / max(spec.autonomy, 1.0)
+    if pressure <= 0.35:
+        return 0
+    scale = 180 if mode == "balanced" else 300
+    return int(scale * pressure)
+
+
+def build_weighted_path_cover_blocks(
+    data: JsonDict,
+    selected_items: list[SelectedTrip],
+    *,
+    edge_mode: str = "time",
+) -> list[JsonDict]:
     """Minimum-block path cover with low-cost compatible connections.
 
     `build_path_cover_blocks` only minimizes the number of paths. This variant
     keeps that priority but, among maximum-cardinality matchings, prefers edges
-    with shorter waiting/deadhead connections using weighted matching.
+    with shorter waiting/deadhead connections using weighted matching.  In
+    charging-aware modes, the same matching also favors successor edges that
+    leave useful charging opportunities inside existing breaks.
     """
     items = sorted(
         selected_items,
@@ -245,10 +327,11 @@ def build_weighted_path_cover_blocks(data: JsonDict, selected_items: list[Select
             if bridge is None:
                 continue
             edge_bridge[(i, j)] = bridge
+            edge_cost = bridge_cost_seconds(bridge, data, items[i], items[j], mode=edge_mode)
             graph.add_edge(
                 f"L{i}",
                 f"R{j}",
-                weight=max_possible_cost - bridge_cost_seconds(bridge),
+                weight=max_possible_cost - edge_cost,
             )
 
     matching_edges = nx.algorithms.matching.max_weight_matching(

@@ -3,25 +3,30 @@
 
 from __future__ import annotations
 
+import csv
 from pathlib import Path
 import json
+
+ALGORITHM_TOTALS_CSV = Path("outputs/minoa/algorithm_study/algorithm_totals.csv")
+ALL_INSTANCE_EVIDENCE_MD = Path("outputs/minoa/professor_all/evidence_all_instances_report.md")
+FINAL_RESULTS_CSV = Path("outputs/minoa/final_archive/final_results.csv")
 
 
 ROWS = [
     # instance, cost, trips, vehicles, ev_share, deadhead_min, break_min, charge_min,
     # fixed_cost, break_cost, pull_cost, co2_cost
-    ("Small", 162.44, 48, 2, 0.0, 42.0, 240.0, 0.0, 154.0, 7.66, 0.25, 0.53),
+    ("Small", 162.44, 48, 2, 0.0, 42.0, 240.0, 0.0, 154.0, 7.69, 0.25, 0.50),
     ("Medium", 371.35, 139, 5, 100.0, 752.0, 1717.0, 391.0, 350.0, 16.84, 4.51, 0.0),
-    ("Large", 1165.24, 260, 15, 33.33, 2139.0, 2448.0, 518.0, 1120.0, 29.65, 12.83, 2.75),
-    ("Toy", 488.44, 68, 6, 83.33, 463.0, 913.0, 126.0, 470.0, 15.54, 2.78, 0.12),
-    ("1line", 323.63, 102, 4, 50.0, 426.0, 1389.0, 245.0, 294.0, 26.22, 2.56, 0.85),
-    ("1line 6TW", 530.77, 112, 7, 42.86, 1432.0, 1315.0, 349.0, 518.0, 2.35, 8.59, 1.83),
-    ("2lines", 910.15, 204, 12, 41.67, 3218.0, 2710.0, 717.0, 889.0, -1.42, 19.31, 3.27),
-    ("2lines 6TW", 626.24, 204, 8, 37.50, 1150.0, 2400.0, 215.0, 595.0, 22.09, 6.90, 2.24),
-    ("3lines", 999.99, 306, 12, 33.33, 1258.0, 3654.0, 351.0, 896.0, 93.0, 7.55, 3.44),
-    ("3lines tri.", 941.41, 306, 12, 41.67, 1734.0, 2967.0, 651.0, 889.0, 38.80, 10.40, 3.20),
-    ("5lines", 1669.01, 510, 20, 25.0, 2110.0, 6485.0, 956.0, 1505.0, 145.67, 12.66, 5.68),
-    ("8lines", 2617.76, 819, 33, 15.15, 5036.0, 5552.0, 257.0, 2506.0, 69.04, 30.22, 12.51),
+    ("Large", 1163.35, 260, 15, 33.33, 2600.0, 2520.0, 505.0, 1120.0, 25.79, 15.60, 1.96),
+    ("Toy", 488.44, 68, 6, 83.33, 463.0, 913.0, 126.0, 470.0, 15.58, 2.78, 0.08),
+    ("1line", 323.63, 102, 4, 50.0, 426.0, 1389.0, 245.0, 294.0, 26.38, 2.56, 0.70),
+    ("1line 6TW", 530.77, 112, 7, 42.86, 1432.0, 1315.0, 349.0, 518.0, 3.02, 8.59, 1.16),
+    ("2lines", 910.15, 204, 12, 41.67, 3218.0, 2710.0, 717.0, 889.0, 0.00, 19.31, 1.85),
+    ("2lines 6TW", 626.24, 204, 8, 37.50, 1150.0, 2400.0, 215.0, 595.0, 22.51, 6.90, 1.83),
+    ("3lines", 999.99, 306, 12, 33.33, 1258.0, 3654.0, 351.0, 896.0, 93.62, 7.55, 2.83),
+    ("3lines tri.", 941.41, 306, 12, 41.67, 1734.0, 2967.0, 651.0, 889.0, 39.48, 10.40, 2.52),
+    ("5lines", 1669.01, 510, 20, 25.0, 2110.0, 6485.0, 956.0, 1505.0, 146.58, 12.66, 4.77),
+    ("8lines", 2617.76, 819, 33, 15.15, 5036.0, 5552.0, 257.0, 2506.0, 71.78, 30.22, 9.77),
 ]
 
 
@@ -36,7 +41,7 @@ RULES = [
     ("Parking capacity", "capacity"),
     ("Charging capacity", "capacity"),
     ("Vehicle availability", "fleet"),
-    ("Official cost", "cost"),
+    ("Validated cost", "cost"),
 ]
 
 LAYERS = ["Timetable", "Path cover", "EV/charge", "Capacity", "Validator", "Report"]
@@ -57,16 +62,469 @@ COVERAGE = [
 ]
 
 
+def _read_csv_dicts(path: Path) -> list[dict[str, str]]:
+    if not path.exists():
+        return []
+    with path.open(newline="", encoding="utf-8") as handle:
+        return list(csv.DictReader(handle))
+
+
+def _parse_markdown_table(path: Path) -> list[dict[str, str]]:
+    if not path.exists():
+        return []
+    lines = path.read_text(encoding="utf-8").splitlines()
+    table_lines = [line for line in lines if line.strip().startswith("|")]
+    if len(table_lines) < 3:
+        return []
+    header = [cell.strip() for cell in table_lines[0].strip("|").split("|")]
+    rows: list[dict[str, str]] = []
+    for line in table_lines[2:]:
+        cells = [cell.strip() for cell in line.strip("|").split("|")]
+        if len(cells) == len(header):
+            rows.append(dict(zip(header, cells)))
+    return rows
+
+
+def _float_cell(row: dict[str, str], key: str, default: float = 0.0) -> float:
+    value = row.get(key, "")
+    try:
+        return float(value.replace(",", ""))
+    except ValueError:
+        return default
+
+
+def _display_instance(name: str) -> str:
+    return {
+        "Toy Example": "Toy",
+        "1line 6timeWindow": "1line 6TW",
+        "2lines 6 timeWindows": "2lines 6TW",
+        "3linesTriangle": "3lines tri.",
+        "8lines": "8lines",
+        " 8lines": "8lines",
+    }.get(name.strip(), name.strip())
+
+
+def _result_rows() -> list[tuple[str, float, float, float, float, float, float, float, float, float, float, float]]:
+    rows = _read_csv_dicts(FINAL_RESULTS_CSV)
+    if rows:
+        return [
+            (
+                _display_instance(row["instance"]),
+                float(row["objective"]),
+                float(row["selected_trips"]),
+                float(row["total_blocks"]),
+                float(row["ev_share"]),
+                float(row["deadhead_min"]),
+                float(row["break_min"]),
+                float(row["charging_min"]),
+                float(row["fixed_cost"]),
+                float(row["break_cost"]),
+                float(row["pull_cost"]),
+                float(row["co2_cost"]),
+            )
+            for row in rows
+        ]
+
+    evidence_rows = _parse_markdown_table(ALL_INSTANCE_EVIDENCE_MD)
+    if evidence_rows:
+        parsed = []
+        for row in evidence_rows:
+            parsed.append(
+                (
+                    _display_instance(row.get("Instance", "")),
+                    _float_cell(row, "Cost"),
+                    _float_cell(row, "Trips"),
+                    _float_cell(row, "Vehicles"),
+                    _float_cell(row, "EV share (%)"),
+                    _float_cell(row, "Deadhead min"),
+                    _float_cell(row, "Break min"),
+                    _float_cell(row, "Charge min"),
+                    _float_cell(row, "Fixed"),
+                    _float_cell(row, "Break cost"),
+                    _float_cell(row, "Pull cost"),
+                    _float_cell(row, "CO2 cost"),
+                )
+            )
+        order = {row[0]: idx for idx, row in enumerate(ROWS)}
+        return sorted(parsed, key=lambda row: order.get(row[0], 10_000))
+
+    return ROWS
+
+
+def _algorithm_totals() -> list[dict[str, float | str]]:
+    rows = _read_csv_dicts(ALGORITHM_TOTALS_CSV)
+    if rows:
+        final_rows = _result_rows()
+        final_cost = sum(row[1] for row in final_rows)
+        final_vehicles = sum(row[3] for row in final_rows)
+        final_ev = sum(row[3] * row[4] / 100.0 for row in final_rows)
+        display = {
+            "Greedy": "Greedy",
+            "Path-cover": "Unweighted path cover",
+            "Weighted path-cover": "Weighted path cover",
+            "Multi-start path-cover": "Multi-start path cover",
+        }
+        totals = []
+        for row in rows:
+            label = display.get(row["Algorithm label"], row["Algorithm label"])
+            if label == "Multi-start path cover" and final_rows:
+                totals.append(
+                    {
+                        "label": label,
+                        "cost": final_cost,
+                        "vehicles": final_vehicles,
+                        "ev": final_ev,
+                    }
+                )
+                continue
+            totals.append(
+                {
+                    "label": label,
+                    "cost": float(row["Cost"]),
+                    "vehicles": float(row["Vehicles"]),
+                    "ev": float(row["EV"]),
+                }
+            )
+        return totals
+    return [
+        {"label": "Greedy", "cost": 10993.20, "vehicles": 138.0, "ev": 46.0},
+        {"label": "Unweighted path cover", "cost": 11027.94, "vehicles": 138.0, "ev": 39.0},
+        {"label": "Weighted path cover", "cost": 10946.25, "vehicles": 138.0, "ev": 50.0},
+        {"label": "Multi-start path cover", "cost": 10000.48, "vehicles": 126.0, "ev": 32.0},
+    ]
+
+
+def _cost_audit_rows() -> list[dict[str, float | str]]:
+    return [
+        {
+            "label": row[0],
+            "cost": row[1],
+            "fixed": row[8],
+            "remaining": max(row[1] - row[8], 0.0),
+            "break": row[9],
+            "pull": row[10],
+            "co2": row[11],
+            "residual": 0.0,
+        }
+        for row in _result_rows()
+    ]
+
+
 def main() -> None:
     out_dir = Path("FAU_Thesis_temp/figures")
     out_dir.mkdir(parents=True, exist_ok=True)
+    make_archive_result_figures(out_dir)
     make_path_cover_workflow(out_dir / "fig18_graph_path_cover_explained.png")
+    make_method_decision_layers(out_dir / "fig19_method_decision_layers.png")
     make_ev_workflow(out_dir / "fig23_ev_feasibility_workflow.png")
+    make_final_solver_workflow(out_dir / "fig29_final_solver_workflow.png")
     make_constraint_matrix(out_dir / "fig24_constraint_coverage_matrix.png")
     make_resource_pressure(out_dir / "fig25_all_instance_resource_pressure.png")
     make_efficiency_panel(out_dir / "fig26_all_instance_efficiency_panel.png")
     make_cost_audit_panel(out_dir / "fig27_all_instance_cost_audit.png")
     make_vehicle_journey_figure(out_dir / "fig28_ev_ice_vehicle_journey.png")
+    make_algorithm_gain_panel(out_dir / "fig40_algorithm_gain_panel.png")
+    make_sml_improvement_heatmap(out_dir / "fig41_sml_algorithm_improvement.png")
+    make_all_instance_tradeoff_dashboard(out_dir / "fig44_all_instance_tradeoff_dashboard.png")
+
+
+def make_archive_result_figures(out_dir: Path) -> None:
+    """Refresh older result figures from the final no-regression archive."""
+    import matplotlib.pyplot as plt
+    import numpy as np
+
+    rows = _result_rows()
+    labels = [row[0] for row in rows]
+    headline = [row for row in rows if row[0] in {"Small", "Medium", "Large"}]
+    hlabels = [row[0] for row in headline]
+
+    def save(fig, path: Path) -> None:
+        fig.tight_layout()
+        fig.savefig(path)
+        plt.close(fig)
+
+    def label_bars(ax, bars, fmt="{:.2f}", dy=0.0) -> None:
+        top = max((bar.get_height() for bar in bars), default=1.0)
+        ax.set_ylim(top=top * 1.16 + dy)
+        for bar in bars:
+            value = bar.get_height()
+            ax.text(
+                bar.get_x() + bar.get_width() / 2,
+                value + top * 0.015,
+                fmt.format(value),
+                ha="center",
+                va="bottom",
+                fontsize=8,
+            )
+
+    # Fig. 01: headline costs.
+    fig, ax = plt.subplots(figsize=(9.5, 5.2), dpi=180)
+    x = np.arange(len(headline))
+    bars = ax.bar(x, [row[1] for row in headline], color="#4c78a8", width=0.55)
+    ax.set_title("Best validated cost for headline instances", pad=14)
+    ax.set_ylabel("Validator cost")
+    ax.set_xticks(x, hlabels)
+    ax.grid(axis="y", color="#e5e7eb")
+    ax.spines[["top", "right"]].set_visible(False)
+    label_bars(ax, bars)
+    save(fig, out_dir / "fig01_cost_by_instance.png")
+
+    # Fig. 02 and 03: headline fleet mix and EV share.
+    fig, ax = plt.subplots(figsize=(9.5, 5.2), dpi=180)
+    ev = [round(row[3] * row[4] / 100.0) for row in headline]
+    ice = [row[3] - e for row, e in zip(headline, ev)]
+    ax.bar(x, ice, color="#6f7785", label="ICE vehicles")
+    ax.bar(x, ev, bottom=ice, color="#2b8cbe", label="EV vehicles")
+    ax.set_title("Fleet composition for headline instances", pad=14)
+    ax.set_ylabel("Vehicles")
+    ax.set_xticks(x, hlabels)
+    ax.legend(frameon=False)
+    ax.grid(axis="y", color="#e5e7eb")
+    ax.spines[["top", "right"]].set_visible(False)
+    for idx, row in enumerate(headline):
+        ax.text(idx, row[3] + 0.2, f"{int(row[3])} veh", ha="center", fontsize=8)
+    save(fig, out_dir / "fig02_fleet_mix.png")
+
+    fig, ax = plt.subplots(figsize=(9.5, 5.2), dpi=180)
+    bars = ax.bar(x, [row[4] for row in headline], color="#2a9d8f", width=0.55)
+    ax.set_title("Electric-vehicle share for headline instances", pad=14)
+    ax.set_ylabel("EV share (%)")
+    ax.set_ylim(0, 112)
+    ax.set_xticks(x, hlabels)
+    ax.grid(axis="y", color="#e5e7eb")
+    ax.spines[["top", "right"]].set_visible(False)
+    label_bars(ax, bars, fmt="{:.0f}%")
+    save(fig, out_dir / "fig03_ev_share.png")
+
+    # Fig. 04 and 05: operational components.
+    fig, ax = plt.subplots(figsize=(10.5, 5.2), dpi=180)
+    width = 0.24
+    ax.bar(x - width, [row[5] for row in headline], width, label="Deadhead min", color="#4c78a8")
+    ax.bar(x, [row[6] for row in headline], width, label="Break min", color="#f2b447")
+    ax.bar(x + width, [row[7] for row in headline], width, label="Charge min", color="#2a9d8f")
+    ax.set_title("Operational time components for headline instances", pad=14)
+    ax.set_ylabel("Minutes")
+    ax.set_xticks(x, hlabels)
+    ax.legend(frameon=False, ncol=3)
+    ax.grid(axis="y", color="#e5e7eb")
+    ax.spines[["top", "right"]].set_visible(False)
+    save(fig, out_dir / "fig04_operational_components.png")
+
+    fig, ax = plt.subplots(figsize=(9.5, 5.2), dpi=180)
+    bars = ax.bar(x, [row[5] for row in headline], color="#4c78a8", width=0.55)
+    ax.set_title("Deadhead minutes for headline instances", pad=14)
+    ax.set_ylabel("Deadhead minutes")
+    ax.set_xticks(x, hlabels)
+    ax.grid(axis="y", color="#e5e7eb")
+    ax.spines[["top", "right"]].set_visible(False)
+    label_bars(ax, bars, fmt="{:.0f}")
+    save(fig, out_dir / "fig05_deadhead_minutes.png")
+
+    # Fig. 06 and 31: all-algorithm aggregate comparison.
+    totals = _algorithm_totals()
+    alg_labels = [str(row["label"]) for row in totals]
+    fig, ax = plt.subplots(figsize=(11.2, 5.4), dpi=180)
+    ax.bar(np.arange(len(totals)), [float(row["cost"]) for row in totals], color=["#9aa4b2", "#5b8cc0", "#26736d", "#b44949"])
+    ax.set_title("All-instance validated cost by implemented algorithm", pad=14)
+    ax.set_ylabel("Summed audited cost")
+    ax.set_xticks(np.arange(len(totals)), alg_labels, rotation=18, ha="right")
+    ax.grid(axis="y", color="#e5e7eb")
+    ax.spines[["top", "right"]].set_visible(False)
+    save(fig, out_dir / "fig06_algorithm_costs.png")
+
+    fig, axes = plt.subplots(1, 3, figsize=(13.2, 4.6), dpi=180)
+    metrics = [("Cost", "cost"), ("Vehicles", "vehicles"), ("EV vehicles", "ev")]
+    for ax, (title, key) in zip(axes, metrics):
+        values = [float(row[key]) for row in totals]
+        ax.bar(np.arange(len(totals)), values, color="#4c78a8", width=0.58)
+        ax.set_title(title)
+        ax.set_xticks(np.arange(len(totals)), alg_labels, rotation=35, ha="right", fontsize=7)
+        ax.grid(axis="y", color="#e5e7eb")
+        ax.spines[["top", "right"]].set_visible(False)
+        for idx, value in enumerate(values):
+            ax.text(idx, value + max(values) * 0.02, f"{value:.0f}", ha="center", fontsize=7)
+    fig.suptitle("Aggregate comparison of the implemented algorithms", y=1.03, weight="bold")
+    save(fig, out_dir / "fig31_all_algorithm_summary.png")
+
+    # All-instance result figures.
+    xi = np.arange(len(rows))
+    fig, ax = plt.subplots(figsize=(12.8, 5.4), dpi=180)
+    bars = ax.bar(xi, [row[1] for row in rows], color="#4c78a8")
+    ax.set_title("Validated cost across all senior instances", pad=14)
+    ax.set_ylabel("Validator cost")
+    ax.set_xticks(xi, labels, rotation=36, ha="right")
+    ax.grid(axis="y", color="#e5e7eb")
+    ax.spines[["top", "right"]].set_visible(False)
+    label_bars(ax, bars, fmt="{:.0f}")
+    save(fig, out_dir / "fig12_additional_instance_costs.png")
+
+    fig, ax = plt.subplots(figsize=(10.8, 5.4), dpi=180)
+    ax.scatter([row[2] for row in rows], [row[3] for row in rows], s=55, color="#4c78a8", edgecolor="black", linewidth=0.4)
+    for row in rows:
+        ax.annotate(row[0], (row[2], row[3]), xytext=(4, 4), textcoords="offset points", fontsize=7)
+    ax.set_title("Selected trips and used vehicles", pad=14)
+    ax.set_xlabel("Selected trips")
+    ax.set_ylabel("Used vehicles")
+    ax.grid(color="#e5e7eb")
+    ax.spines[["top", "right"]].set_visible(False)
+    save(fig, out_dir / "fig13_additional_vehicle_scaling.png")
+
+    fig, ax = plt.subplots(figsize=(12.8, 5.4), dpi=180)
+    bars = ax.bar(xi, [row[4] for row in rows], color="#2a9d8f")
+    ax.set_title("EV share across all senior instances", pad=14)
+    ax.set_ylabel("EV share (%)")
+    ax.set_xticks(xi, labels, rotation=36, ha="right")
+    ax.set_ylim(0, 112)
+    ax.grid(axis="y", color="#e5e7eb")
+    ax.spines[["top", "right"]].set_visible(False)
+    label_bars(ax, bars, fmt="{:.0f}%")
+    save(fig, out_dir / "fig14_additional_ev_share.png")
+
+    fig, ax = plt.subplots(figsize=(12.8, 5.4), dpi=180)
+    bars = ax.bar(xi, [row[1] / row[2] for row in rows], color="#4c78a8")
+    ax.set_title("Validated cost per selected trip", pad=14)
+    ax.set_ylabel("Cost per selected trip")
+    ax.set_xticks(xi, labels, rotation=36, ha="right")
+    ax.grid(axis="y", color="#e5e7eb")
+    ax.spines[["top", "right"]].set_visible(False)
+    label_bars(ax, bars, fmt="{:.1f}")
+    save(fig, out_dir / "fig15_cost_per_trip.png")
+
+    fig, ax = plt.subplots(figsize=(12.8, 5.8), dpi=180)
+    y = np.arange(len(rows))
+    dead = [row[5] / row[2] for row in rows]
+    brk = [row[6] / row[2] for row in rows]
+    chg = [row[7] / row[2] for row in rows]
+    ax.barh(y, dead, color="#4c78a8", label="Deadhead/trip")
+    ax.barh(y, brk, left=dead, color="#f2b447", label="Break/trip")
+    ax.barh(y, chg, left=np.array(dead) + np.array(brk), color="#2a9d8f", label="Charge/trip")
+    ax.set_title("Operational minutes per selected trip", pad=14)
+    ax.set_xlabel("Minutes per selected trip")
+    ax.set_yticks(y, labels)
+    ax.legend(frameon=False, ncol=3)
+    ax.grid(axis="x", color="#e5e7eb")
+    ax.spines[["top", "right"]].set_visible(False)
+    save(fig, out_dir / "fig16_additional_operational_mix.png")
+
+    fig, axes = plt.subplots(2, 2, figsize=(12.5, 8.0), dpi=180)
+    panels = [
+        (axes[0, 0], "Cost", [row[1] for row in rows]),
+        (axes[0, 1], "Vehicles", [row[3] for row in rows]),
+        (axes[1, 0], "EV share (%)", [row[4] for row in rows]),
+        (axes[1, 1], "Trips per vehicle", [row[2] / row[3] for row in rows]),
+    ]
+    for ax, title, values in panels:
+        ax.bar(xi, values, color="#4c78a8")
+        ax.set_title(title)
+        ax.set_xticks(xi, labels, rotation=45, ha="right", fontsize=7)
+        ax.grid(axis="y", color="#e5e7eb")
+        ax.spines[["top", "right"]].set_visible(False)
+    fig.suptitle("All-instance result summary", y=1.01, weight="bold")
+    save(fig, out_dir / "fig17_all_instance_summary.png")
+
+    fig, ax = plt.subplots(figsize=(9.5, 5.4), dpi=180)
+    ax.scatter([row[3] for row in headline], [row[1] for row in headline], s=80, color="#4c78a8", edgecolor="black")
+    for row in headline:
+        ax.annotate(row[0], (row[3], row[1]), xytext=(6, 4), textcoords="offset points", fontsize=8)
+    ax.set_title("Headline cost-vehicle trade-off", pad=14)
+    ax.set_xlabel("Used vehicles")
+    ax.set_ylabel("Validator cost")
+    ax.grid(color="#e5e7eb")
+    ax.spines[["top", "right"]].set_visible(False)
+    save(fig, out_dir / "fig20_cost_vehicle_tradeoff.png")
+
+    fig, ax = plt.subplots(figsize=(10.2, 5.4), dpi=180)
+    ax.scatter([row[4] for row in rows], [row[1] / row[2] for row in rows], s=55, color="#4c78a8", edgecolor="black", linewidth=0.4)
+    for row in rows:
+        ax.annotate(row[0], (row[4], row[1] / row[2]), xytext=(4, 4), textcoords="offset points", fontsize=7)
+    ax.set_title("EV share and cost efficiency", pad=14)
+    ax.set_xlabel("EV share (%)")
+    ax.set_ylabel("Cost per selected trip")
+    ax.grid(color="#e5e7eb")
+    ax.spines[["top", "right"]].set_visible(False)
+    save(fig, out_dir / "fig21_ev_share_cost_efficiency.png")
+
+    fig, ax = plt.subplots(figsize=(12.8, 5.4), dpi=180)
+    bars = ax.bar(xi, [row[2] / row[3] for row in rows], color="#26736d")
+    ax.set_title("Vehicle productivity across all senior instances", pad=14)
+    ax.set_ylabel("Selected trips per vehicle")
+    ax.set_xticks(xi, labels, rotation=36, ha="right")
+    ax.grid(axis="y", color="#e5e7eb")
+    ax.spines[["top", "right"]].set_visible(False)
+    label_bars(ax, bars, fmt="{:.1f}")
+    save(fig, out_dir / "fig22_vehicle_productivity.png")
+
+
+def make_method_decision_layers(path: Path) -> None:
+    import matplotlib.pyplot as plt
+    from matplotlib.patches import FancyArrowPatch, FancyBboxPatch
+
+    fig, ax = plt.subplots(figsize=(13.0, 6.9), dpi=180)
+    ax.set_xlim(0, 13.0)
+    ax.set_ylim(0, 6.9)
+    ax.axis("off")
+    ax.text(6.5, 6.45, "Decision Layers in the Multi-Start Path-Cover Method", ha="center", fontsize=17, weight="bold")
+    ax.text(
+        6.5,
+        6.08,
+        "The method separates planning decisions into readable layers while passing information forward between them.",
+        ha="center",
+        fontsize=9.5,
+        color="#5d6a78",
+    )
+
+    layers = [
+        (0.45, 4.65, "1", "Timetable layer", "select trips under\nheadway rules", "#dbeafe", "#2563eb"),
+        (3.35, 4.65, "2", "Graph layer", "build feasible\ncontinuation arcs", "#ecfdf5", "#26736d"),
+        (6.25, 4.65, "3", "Path-cover layer", "solve matching and\nreconstruct blocks", "#fff7ed", "#c87b24"),
+        (9.15, 4.65, "4", "Fleet layer", "choose ICE or EV\nfor each block", "#f5f3ff", "#6c55a3"),
+        (3.35, 2.40, "5", "Energy layer", "simulate autonomy and\ninsert charging", "#eef6ff", "#4c78a8"),
+        (6.25, 2.40, "6", "Capacity layer", "reserve parking and\ncharger resources", "#f0fdf4", "#2a9d8f"),
+        (9.15, 2.40, "7", "Reporting layer", "write output and\ncompute audit values", "#fff1f2", "#b44949"),
+    ]
+
+    for x, y, num, title, body, face, edge in layers:
+        box = FancyBboxPatch(
+            (x, y),
+            2.35,
+            1.05,
+            boxstyle="round,pad=0.035,rounding_size=0.12",
+            linewidth=1.5,
+            edgecolor=edge,
+            facecolor=face,
+        )
+        ax.add_patch(box)
+        ax.text(x + 0.22, y + 0.82, num, ha="center", va="center", color="white", fontsize=9, weight="bold",
+                bbox=dict(boxstyle="circle,pad=0.28", facecolor=edge, edgecolor=edge))
+        ax.text(x + 1.25, y + 0.68, title, ha="center", va="center", fontsize=11, weight="bold", color="#111827")
+        ax.text(x + 1.25, y + 0.32, body, ha="center", va="center", fontsize=8.5, color="#4b5563")
+
+    arrows = [
+        ((2.82, 5.18), (3.30, 5.18)),
+        ((5.72, 5.18), (6.20, 5.18)),
+        ((8.62, 5.18), (9.10, 5.18)),
+        ((10.32, 4.65), (10.32, 3.45)),
+        ((9.15, 2.92), (8.62, 2.92)),
+        ((6.25, 2.92), (5.72, 2.92)),
+        ((4.52, 3.45), (4.52, 4.62)),
+    ]
+    for start, end in arrows:
+        ax.add_patch(FancyArrowPatch(start, end, arrowstyle="-|>", mutation_scale=13, linewidth=1.4, color="#374151"))
+
+    ax.plot([1.6, 11.4], [1.35, 1.35], color="#d0d7de", linewidth=1.0)
+    ax.text(6.5, 1.02, "Multi-start search repeats layers 1--7 with different timetable tie-breaking choices.", ha="center", fontsize=9.5)
+    ax.text(
+        6.5,
+        0.62,
+        r"The selected candidate is $h^*=\arg\min_{h\in H_{int}} C^{int,h}$; external validation audits the final output.",
+        ha="center",
+        fontsize=10,
+        color="#1f2937",
+    )
+
+    fig.tight_layout()
+    fig.savefig(path)
+    plt.close(fig)
 
 
 def make_constraint_matrix(path: Path) -> None:
@@ -252,15 +710,305 @@ def make_ev_workflow(path: Path) -> None:
     plt.close(fig)
 
 
+def make_final_solver_workflow(path: Path) -> None:
+    import matplotlib.pyplot as plt
+
+    fig, ax = plt.subplots(figsize=(13.6, 7.6), dpi=180)
+    ax.set_xlim(0, 13.6)
+    ax.set_ylim(0, 7.6)
+    ax.axis("off")
+    ax.text(6.8, 7.20, "Final Multi-Start Path-Cover Matheuristic", ha="center", fontsize=18, weight="bold")
+    ax.text(
+        6.8,
+        6.84,
+        "Each start is a complete candidate schedule. The best candidate is selected by validated total cost.",
+        ha="center",
+        fontsize=9.6,
+        color="#5d6a78",
+    )
+
+    steps = [
+        (0.35, 5.35, "1", "Start h", "choose timetable\nvariant weights", "#2563eb"),
+        (2.85, 5.35, "2", "Timetable", "shortest paths in\nheadway graphs", "#2a9d8f"),
+        (5.35, 5.35, "3", "Compatibility graph", "arcs = feasible\ntrip continuations", "#c87b24"),
+        (7.85, 5.35, "4", "Weighted matching", "path cover with\nconnection scores", "#6c55a3"),
+        (10.35, 5.35, "5", "Vehicle blocks", "reconstruct paths\nand depot movements", "#1f2937"),
+        (2.25, 3.35, "6", "Fleet assignment", "EV first when\nbattery feasible", "#26736d"),
+        (5.35, 3.35, "7", "Charging insertion", "use break windows\nand charger capacity", "#26736d"),
+        (8.45, 3.35, "8", "Candidate cost", "fixed, break,\npull, CO2", "#c87b24"),
+        (5.35, 1.35, "9", "Best schedule", r"$h^*=\arg\min C^{int,h}$\namong complete candidates", "#b44949"),
+    ]
+    for x, y, num, title, body, color in steps:
+        _draw_box(ax, x, y, 2.25, 0.95, num, title, body, badge_color=color)
+
+    arrows = [
+        ((2.60, 5.82), (2.82, 5.82), "selected trips"),
+        ((5.10, 5.82), (5.32, 5.82), "nodes/arcs"),
+        ((7.60, 5.82), (7.82, 5.82), "edge weights"),
+        ((10.10, 5.82), (10.32, 5.82), "paths"),
+        ((11.48, 5.35), (11.48, 4.60), None),
+        ((11.48, 4.60), (3.38, 4.60), None),
+        ((3.38, 4.60), (3.38, 4.30), None),
+        ((4.50, 3.82), (5.32, 3.82), "EV blocks"),
+        ((7.60, 3.82), (8.42, 3.82), "complete blocks"),
+        ((9.58, 3.35), (9.58, 2.55), None),
+        ((9.58, 2.55), (6.48, 2.55), None),
+        ((6.48, 2.55), (6.48, 2.30), None),
+    ]
+    for start, end, label in arrows:
+        _arrow(ax, start, end, label=label)
+
+    _draw_formula_panel(
+        ax,
+        (0.55, 0.35),
+        4.25,
+        1.05,
+        "Multi-start set",
+        r"$H=\{0,1,\ldots,H_{max}\}$",
+        "Each h changes timetable tie-breaking and therefore graph quality.",
+    )
+    _draw_formula_panel(
+        ax,
+        (8.30, 0.35),
+        4.25,
+        1.05,
+        "Selection rule",
+        r"$h^*=\arg\min_{h\in H_{int}} C^{int,h}$",
+        "The final selected output is audited externally after construction.",
+    )
+
+    fig.tight_layout()
+    fig.savefig(path)
+    plt.close(fig)
+
+
+def make_algorithm_gain_panel(path: Path) -> None:
+    import matplotlib.pyplot as plt
+    import numpy as np
+
+    rows = _algorithm_totals()
+    labels = [str(row["label"]) for row in rows]
+    costs = np.array([float(row["cost"]) for row in rows])
+    best = float(costs.min())
+    gaps = costs - best
+    colors = ["#9aa4b2", "#5b8cc0", "#26736d", "#b44949"]
+    y = np.arange(len(labels))
+
+    fig, ax = plt.subplots(figsize=(12.6, 5.6), dpi=180)
+    bars = ax.barh(y, gaps, color=colors, height=0.58)
+    ax.set_title("All-Instance Cost Gap of the Implemented Algorithms", pad=14, weight="bold")
+    ax.set_xlabel("Validated objective value above the best tested configuration")
+    ax.set_yticks(y, labels)
+    ax.invert_yaxis()
+    ax.grid(axis="x", color="#e5e7eb")
+    ax.spines[["top", "right", "left"]].set_visible(False)
+    ax.tick_params(axis="y", length=0)
+    ax.set_xlim(0, max(gaps) * 1.32 if max(gaps) > 0 else 1)
+
+    for bar, cost, gap in zip(bars, costs, gaps):
+        x = bar.get_width()
+        label = f"best: {cost:.2f}" if gap < 1e-6 else f"+{gap:.2f}  (total {cost:.2f})"
+        ax.text(
+            x + max(gaps) * 0.035,
+            bar.get_y() + bar.get_height() / 2,
+            label,
+            va="center",
+            ha="left",
+            fontsize=8.2,
+            color="#1f2937",
+            weight="bold" if gap < 1e-6 else "normal",
+        )
+
+    fig.text(
+        0.5,
+        0.025,
+        "Values are summed over the twelve Senior instances and use validator-feasible outputs.",
+        ha="center",
+        fontsize=8.8,
+        color="#495057",
+    )
+    fig.tight_layout(rect=(0, 0.07, 1, 1))
+    fig.savefig(path)
+    plt.close(fig)
+
+
+def make_sml_improvement_heatmap(path: Path) -> None:
+    import matplotlib.pyplot as plt
+    import numpy as np
+
+    instances = ["Small", "Medium", "Large"]
+    algorithms = ["Greedy", "Path-cover", "Weighted", "Multi-start"]
+    final_by_instance = {row[0]: row[1] for row in _result_rows()}
+    costs = np.array(
+        [
+            [213.55, 213.43, 213.55, final_by_instance.get("Small", 162.44)],
+            [457.10, 456.81, 458.36, final_by_instance.get("Medium", 371.35)],
+            [1169.87, 1168.77, 1166.94, final_by_instance.get("Large", 1163.35)],
+        ]
+    )
+    best = costs[:, [-1]]
+    improvement = costs - best
+
+    fig, ax = plt.subplots(figsize=(10.8, 4.8), dpi=180)
+    image = ax.imshow(improvement, cmap="YlOrRd", aspect="auto")
+    ax.set_title("Per-Instance Cost Gap to the Final Multi-Start Method")
+    ax.set_xticks(range(len(algorithms)), algorithms)
+    ax.set_yticks(range(len(instances)), instances)
+    ax.set_xlabel("Algorithm")
+    ax.set_ylabel("Headline instance")
+    for r in range(improvement.shape[0]):
+        for c in range(improvement.shape[1]):
+            value = improvement[r, c]
+            text = "best" if abs(value) < 1e-6 else f"+{value:.2f}"
+            color = "white" if value > improvement.max() * 0.55 else "#1f2937"
+            ax.text(c, r, text, ha="center", va="center", fontsize=9, weight="bold", color=color)
+    cbar = fig.colorbar(image, ax=ax, fraction=0.035, pad=0.02)
+    cbar.set_label("Cost above final method")
+    ax.spines[:].set_visible(False)
+    ax.tick_params(length=0)
+    fig.text(
+        0.5,
+        0.02,
+        "The largest gains come from Small and Medium, where timetable variation reduces one vehicle block.",
+        ha="center",
+        fontsize=8.6,
+        color="#495057",
+    )
+    fig.tight_layout(rect=(0, 0.06, 1, 1))
+    fig.savefig(path)
+    plt.close(fig)
+
+
+def make_all_instance_tradeoff_dashboard(path: Path) -> None:
+    import matplotlib.pyplot as plt
+    import numpy as np
+
+    labels = [row[0] for row in _result_rows()]
+    cost = np.array([row[1] for row in _result_rows()], dtype=float)
+    trips = np.array([row[2] for row in _result_rows()], dtype=float)
+    vehicles = np.array([row[3] for row in _result_rows()], dtype=float)
+    ev_share = np.array([row[4] for row in _result_rows()], dtype=float)
+    deadhead = np.array([row[5] for row in _result_rows()], dtype=float)
+    breaks = np.array([row[6] for row in _result_rows()], dtype=float)
+    charge = np.array([row[7] for row in _result_rows()], dtype=float)
+
+    cost_per_trip = cost / trips
+    trips_per_vehicle = trips / vehicles
+    deadhead_per_trip = deadhead / trips
+    break_per_trip = breaks / trips
+    charge_per_trip = charge / trips
+    resource = np.column_stack([deadhead_per_trip, break_per_trip, charge_per_trip])
+    total_pressure = resource.sum(axis=1)
+    order = np.argsort(total_pressure)
+
+    fig = plt.figure(figsize=(13.6, 8.6), dpi=180)
+    gs = fig.add_gridspec(2, 2, width_ratios=[1.15, 1.0], height_ratios=[1.0, 1.05], wspace=0.28, hspace=0.42)
+    ax1 = fig.add_subplot(gs[0, 0])
+    ax2 = fig.add_subplot(gs[0, 1])
+    ax3 = fig.add_subplot(gs[1, :])
+
+    scatter = ax1.scatter(
+        trips_per_vehicle,
+        cost_per_trip,
+        s=70 + ev_share * 2.2,
+        c=ev_share,
+        cmap="viridis",
+        edgecolor="#1f2937",
+        linewidth=0.5,
+    )
+    ax1.set_title("Efficiency and electrification")
+    ax1.set_xlabel("Selected trips per vehicle")
+    ax1.set_ylabel("Cost per selected trip")
+    ax1.grid(color="#e5e7eb", linewidth=0.8)
+    ax1.spines[["top", "right"]].set_visible(False)
+    x_mid = 0.5 * (float(trips_per_vehicle.min()) + float(trips_per_vehicle.max()))
+    y_mid = 0.5 * (float(cost_per_trip.min()) + float(cost_per_trip.max()))
+    for idx, (x, y_value, label) in enumerate(zip(trips_per_vehicle, cost_per_trip, labels)):
+        dx = 7 if x <= x_mid else -34
+        dy = -10 if y_value >= y_mid else 8
+        ax1.annotate(
+            label,
+            (x, y_value),
+            xytext=(dx, dy),
+            textcoords="offset points",
+            fontsize=6.6,
+            color="#334155",
+            ha="left" if dx > 0 else "right",
+            arrowprops=dict(arrowstyle="-", color="#cbd5e1", lw=0.45),
+            annotation_clip=False,
+        )
+    cbar = fig.colorbar(scatter, ax=ax1, fraction=0.045, pad=0.025)
+    cbar.set_label("EV share (%)", fontsize=8)
+    cbar.ax.tick_params(labelsize=7)
+
+    ax2.scatter(deadhead_per_trip, charge_per_trip, s=70 + vehicles * 4, color="#2f6db3", alpha=0.78, edgecolor="#1f2937", linewidth=0.5)
+    ax2.set_title("Repositioning and charging pressure")
+    ax2.set_xlabel("Deadhead minutes per trip")
+    ax2.set_ylabel("Charging minutes per trip")
+    ax2.grid(color="#e5e7eb", linewidth=0.8)
+    ax2.spines[["top", "right"]].set_visible(False)
+    x_mid = 0.5 * (float(deadhead_per_trip.min()) + float(deadhead_per_trip.max()))
+    y_mid = 0.5 * (float(charge_per_trip.min()) + float(charge_per_trip.max()))
+    for idx, (x, y_value, label) in enumerate(zip(deadhead_per_trip, charge_per_trip, labels)):
+        dx = 7 if x <= x_mid else -34
+        dy = -10 if y_value >= y_mid else 8
+        ax2.annotate(
+            label,
+            (x, y_value),
+            xytext=(dx, dy),
+            textcoords="offset points",
+            fontsize=6.6,
+            color="#334155",
+            ha="left" if dx > 0 else "right",
+            arrowprops=dict(arrowstyle="-", color="#cbd5e1", lw=0.45),
+            annotation_clip=False,
+        )
+
+    resource_sorted = resource[order]
+    labels_sorted = [labels[i] for i in order]
+    y = np.arange(len(labels_sorted))
+    left = np.zeros(len(labels_sorted))
+    colors = ["#4c78a8", "#f2b447", "#2a9d8f"]
+    names = ["Deadhead/trip", "Break/trip", "Charge/trip"]
+    for idx, (values, color, name) in enumerate(zip(resource_sorted.T, colors, names)):
+        bars = ax3.barh(y, values, left=left, color=color, label=name)
+        for bar, value, base in zip(bars, values, left):
+            if value >= 0.55:
+                ax3.text(base + value / 2, bar.get_y() + bar.get_height() / 2, f"{value:.1f}", ha="center", va="center", fontsize=6.7, color="white", weight="bold")
+        left += values
+    ax3.set_title("Operational minutes per selected trip, sorted by total pressure")
+    ax3.set_xlabel("Minutes per selected trip")
+    ax3.set_yticks(y, labels_sorted)
+    ax3.grid(axis="x", color="#e5e7eb", linewidth=0.8)
+    ax3.spines[["top", "right", "left"]].set_visible(False)
+    ax3.tick_params(axis="y", length=0, labelsize=8)
+    ax3.legend(frameon=False, ncol=3, loc="lower right")
+    for idx, total in enumerate(total_pressure[order]):
+        ax3.text(total + 0.25, idx, f"{total:.1f}", va="center", fontsize=7.0, color="#334155")
+
+    fig.suptitle("All-Instance Operational Trade-Off Dashboard", fontsize=16.0, weight="bold", y=0.985)
+    fig.text(
+        0.5,
+        0.018,
+        "Reading guide: good schedules combine high vehicle productivity with manageable repositioning, waiting, and charging pressure.",
+        ha="center",
+        fontsize=8.6,
+        color="#495057",
+    )
+    fig.tight_layout(rect=(0, 0.05, 1, 0.95))
+    fig.savefig(path)
+    plt.close(fig)
+
+
 def make_resource_pressure(path: Path) -> None:
     import matplotlib.pyplot as plt
     import numpy as np
 
-    labels = [row[0] for row in ROWS]
+    labels = [row[0] for row in _result_rows()]
     values = np.array(
         [
             [row[5] / row[2], row[6] / row[2], row[7] / max(row[2], 1), row[4] / 100.0]
-            for row in ROWS
+            for row in _result_rows()
         ]
     )
     col_labels = ["Deadhead/trip", "Break/trip", "Charge/trip", "EV share"]
@@ -294,10 +1042,10 @@ def make_efficiency_panel(path: Path) -> None:
     import matplotlib.pyplot as plt
     import numpy as np
 
-    labels = [row[0] for row in ROWS]
-    costs_per_trip = [row[1] / row[2] for row in ROWS]
-    trips_per_vehicle = [row[2] / row[3] for row in ROWS]
-    ev_share = [row[4] for row in ROWS]
+    labels = [row[0] for row in _result_rows()]
+    costs_per_trip = [row[1] / row[2] for row in _result_rows()]
+    trips_per_vehicle = [row[2] / row[3] for row in _result_rows()]
+    ev_share = [row[4] for row in _result_rows()]
     x = np.arange(len(labels))
 
     fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(11.5, 8.2), dpi=180, sharex=True)
@@ -337,134 +1085,141 @@ def make_cost_audit_panel(path: Path) -> None:
     import matplotlib.pyplot as plt
     import numpy as np
 
-    labels = [row[0] for row in ROWS]
-    total = np.array([row[1] for row in ROWS])
-    fixed = np.array([row[8] for row in ROWS])
-    pull = np.array([row[10] for row in ROWS])
-    co2 = np.array([row[11] for row in ROWS])
-    other = total - fixed
+    rows = _cost_audit_rows()
+    labels = [str(row["label"]) for row in rows]
+    total = np.array([float(row["cost"]) for row in rows])
+    fixed = np.array([float(row["fixed"]) for row in rows])
+    other = np.array([float(row["remaining"]) for row in rows])
     fixed_share = fixed / total * 100.0
-    x = np.arange(len(labels))
+    y = np.arange(len(labels))
 
-    fig, ax = plt.subplots(figsize=(12.0, 6.0), dpi=180)
-    bars_fixed = ax.bar(x, fixed, color="#536878", label="Fixed vehicle cost")
-    bars_other = ax.bar(x, other, bottom=fixed, color="#f2b447", label="Other official cost")
+    fig, ax = plt.subplots(figsize=(12.8, 7.4), dpi=180)
+    ax.barh(y, fixed, color="#536878", label="Fixed vehicle cost")
+    ax.barh(y, other, left=fixed, color="#f2b447", label="Remaining validated cost")
 
-    ax.set_title("Official Cost Audit Across All Senior Instances")
-    ax.set_ylabel("Official VS cost")
-    ax.set_xticks(x, labels, rotation=35, ha="right")
-    ax.grid(axis="y", color="#dde2e6", linewidth=0.8)
+    ax.set_title("Validated Cost Audit Across All Senior Instances", pad=14, weight="bold")
+    ax.set_xlabel("Validated objective value")
+    ax.set_yticks(y, labels)
+    ax.invert_yaxis()
+    ax.grid(axis="x", color="#dde2e6", linewidth=0.8)
     ax.spines[["top", "right"]].set_visible(False)
-    ax.legend(frameon=False, loc="upper left")
+    ax.legend(frameon=False, loc="upper right")
+    ax.set_xlim(0, max(total) * 1.14)
+    ax.tick_params(axis="y", length=0)
 
     for idx, value in enumerate(total):
-        ax.text(idx, value + max(total) * 0.012, f"{value:.0f}", ha="center", fontsize=7)
-        ax.text(idx, fixed[idx] * 0.52, f"{fixed_share[idx]:.0f}% fixed", ha="center", fontsize=6, color="white")
-        ax.text(
-            idx,
-            fixed[idx] + max(other[idx], 0.0) * 0.45,
-            f"P {pull[idx]:.1f}\nCO2 {co2[idx]:.1f}",
-            ha="center",
-            va="center",
-            fontsize=6,
-            color="#343a40",
-        )
+        ax.text(value + max(total) * 0.014, idx, f"{value:.0f}", va="center", fontsize=7.6, weight="bold")
+        if fixed[idx] > 120:
+            ax.text(
+                fixed[idx] * 0.52,
+                idx,
+                f"{fixed_share[idx]:.0f}% fixed",
+                ha="center",
+                va="center",
+                fontsize=7.0,
+                color="white",
+                weight="bold",
+            )
+        if other[idx] > 55:
+            ax.text(
+                fixed[idx] + other[idx] / 2,
+                idx,
+                f"{other[idx]:.1f}",
+                ha="center",
+                va="center",
+                fontsize=6.8,
+                color="#343a40",
+            )
 
     fig.text(
+        0.5,
         0.01,
-        0.01,
-        "Other official cost contains break, pull-in/out, and CO2 terms. Pull and CO2 labels are shown because they are read directly from input coefficients.",
+        "Number at the bar end = total validated cost. The remaining segment equals total cost minus fixed vehicle cost.",
+        ha="center",
         fontsize=8,
         color="#495057",
     )
-    fig.tight_layout(rect=(0, 0.04, 1, 1))
+    fig.tight_layout(rect=(0, 0.045, 1, 1))
     fig.savefig(path)
     plt.close(fig)
 
 
 def make_vehicle_journey_figure(path: Path) -> None:
     import matplotlib.pyplot as plt
-    from matplotlib.patches import Patch
+    import numpy as np
+    from matplotlib.colors import LinearSegmentedColormap
 
-    medium_data = _load_json(Path("data/raw/minoa/senior/Medium_Input_S.json"))
-    medium_output = _load_json(Path("outputs/minoa/all_multistart/Medium_Instance_S_Output_pipeline.json"))
-    large_data = _load_json(Path("data/raw/minoa/senior/Large_Input_S.json"))
-    large_output = _load_json(Path("outputs/minoa/all_multistart/Large_Instance_S_Output_pipeline.json"))
+    labels = [row[0] for row in _result_rows()]
+    trips = np.array([row[2] for row in _result_rows()], dtype=float)
+    vehicles = np.array([row[3] for row in _result_rows()], dtype=float)
+    ev_share = np.array([row[4] for row in _result_rows()], dtype=float) / 100.0
+    ev = np.rint(vehicles * ev_share).astype(int)
+    ice = vehicles.astype(int) - ev
+    deadhead = np.array([row[5] for row in _result_rows()], dtype=float) / trips
+    breaks = np.array([row[6] for row in _result_rows()], dtype=float) / trips
+    charge = np.array([row[7] for row in _result_rows()], dtype=float) / trips
+    matrix = np.column_stack([deadhead, breaks, charge])
 
-    ev_block = _select_block(medium_output, "electric", prefer_charging=True)
-    ice_block = _select_block(large_output, "ICE", prefer_charging=False)
-    ev_segments, ev_stats = _block_segments(medium_data, ev_block)
-    ice_segments, ice_stats = _block_segments(large_data, ice_block)
-
-    all_segments = ev_segments + ice_segments
-    start = min(segment[0] for segment in all_segments)
-    end = max(segment[1] for segment in all_segments)
-    start_hour = int(start // 3600)
-    end_hour = int(end // 3600) + 1
-
-    colors = {
-        "trip": "#26736d",
-        "deadhead": "#536878",
-        "break": "#c7d2fe",
-        "charge": "#f2b447",
-    }
-    labels = {
-        "trip": "Passenger trip",
-        "deadhead": "Pull/deadhead",
-        "break": "Parking/break",
-        "charge": "Charging",
-    }
-
-    fig, ax = plt.subplots(figsize=(12.0, 5.8), dpi=180)
-    fig.suptitle("Validated Vehicle Journey Example: EV and ICE Blocks", y=0.975, fontsize=15)
-    ax.text(
+    fig, (ax1, ax2) = plt.subplots(
+        1,
+        2,
+        figsize=(13.2, 7.4),
+        dpi=180,
+        gridspec_kw={"width_ratios": [1.05, 1.45], "wspace": 0.18},
+    )
+    fig.suptitle("All-Instance Operational Profile of the Final Schedules", fontsize=15.5, weight="bold", y=0.98)
+    fig.text(
         0.5,
-        0.925,
-        "Segments are taken from validator-accepted outputs. The labels show how activity types enter feasibility and cost.",
+        0.935,
+        "Each row is one senior instance. The left panel shows the validated fleet mix; the right panel normalizes operational activity minutes by selected trips.",
         ha="center",
-        transform=fig.transFigure,
-        fontsize=9,
+        fontsize=8.8,
         color="#5d6a78",
     )
 
-    _draw_journey_lane(ax, ev_segments, y=20, colors=colors, max_labels=12)
-    _draw_journey_lane(ax, ice_segments, y=8, colors=colors, max_labels=10)
+    y = np.arange(len(labels))
+    ax1.barh(y, ev, color="#2a9d8f", edgecolor="#1f2937", linewidth=0.4, label="EV vehicles")
+    ax1.barh(y, ice, left=ev, color="#536878", edgecolor="#1f2937", linewidth=0.4, label="ICE vehicles")
+    ax1.set_yticks(y, labels)
+    ax1.invert_yaxis()
+    ax1.set_xlabel("Used vehicles")
+    ax1.set_title("Validated EV/ICE fleet mix", fontsize=10.5)
+    ax1.grid(axis="x", color="#e5e7eb", linewidth=0.8)
+    ax1.spines[["top", "right", "left"]].set_visible(False)
+    ax1.tick_params(axis="y", length=0, labelsize=8)
+    ax1.legend(frameon=False, loc="lower right", fontsize=7.8)
+    for idx, (e, i, total) in enumerate(zip(ev, ice, vehicles.astype(int))):
+        ax1.text(total + 0.35, idx, f"{total}", va="center", fontsize=7.2, color="#263445")
+        if e > 0:
+            ax1.text(e / 2, idx, str(e), ha="center", va="center", fontsize=7.0, color="white", weight="bold")
+        if i > 0:
+            ax1.text(e + i / 2, idx, str(i), ha="center", va="center", fontsize=7.0, color="white", weight="bold")
 
-    ax.set_yticks([23, 11], ["Medium EV block", "Large ICE block"])
-    ax.set_ylim(2, 30)
-    ax.set_xlim(start_hour * 3600, end_hour * 3600)
-    ticks = list(range(start_hour * 3600, (end_hour + 1) * 3600, 3600))
-    ax.set_xticks(ticks, [_hhmm(tick) for tick in ticks])
-    ax.set_xlabel("Time of day")
-    ax.grid(axis="x", color="#dde2e6", linewidth=0.8)
-    ax.spines[["top", "right", "left"]].set_visible(False)
-    ax.tick_params(axis="y", length=0)
-
-    handles = [Patch(facecolor=color, edgecolor="#1f2937", label=labels[key]) for key, color in colors.items()]
-    ax.legend(handles=handles, ncol=4, frameon=False, loc="upper center", bbox_to_anchor=(0.5, -0.14))
-
-    ev_text = (
-        f"EV: {ev_stats['trips']} trips, {ev_stats['deadhead_min']:.0f} deadhead min, "
-        f"{ev_stats['break_min']:.0f} break min, {ev_stats['charge_min']:.0f} charge min; "
-        "CO2 cost = 0"
-    )
-    ice_text = (
-        f"ICE: {ice_stats['trips']} trips, {ice_stats['deadhead_min']:.0f} deadhead min, "
-        f"{ice_stats['break_min']:.0f} break min, no charging; "
-        "CO2 cost applies to driving"
-    )
-    ax.text(start_hour * 3600, 27.7, ev_text, fontsize=8.3, color="#1f2937", va="center")
-    ax.text(start_hour * 3600, 15.7, ice_text, fontsize=8.3, color="#1f2937", va="center")
+    cmap = LinearSegmentedColormap.from_list("activity_pressure", ["#f8fafc", "#b7d7ee", "#2f6db3"])
+    image = ax2.imshow(matrix, cmap=cmap, aspect="auto")
+    ax2.set_title("Operational minutes per selected trip", fontsize=10.5)
+    ax2.set_xticks([0, 1, 2], ["Deadhead", "Break", "Charge"])
+    ax2.set_yticks(y, labels)
+    ax2.tick_params(axis="both", length=0, labelsize=8)
+    ax2.spines[:].set_visible(False)
+    for r in range(matrix.shape[0]):
+        for c in range(matrix.shape[1]):
+            value = matrix[r, c]
+            color = "white" if value > matrix.max() * 0.62 else "#1f2937"
+            ax2.text(c, r, f"{value:.1f}", ha="center", va="center", fontsize=7.3, color=color, weight="bold")
+    cbar = fig.colorbar(image, ax=ax2, fraction=0.035, pad=0.02)
+    cbar.set_label("minutes / trip", fontsize=8)
+    cbar.ax.tick_params(labelsize=7)
 
     fig.text(
         0.5,
         0.02,
-        "Cost link: every used block pays fixed vehicle cost; deadhead/pull driving contributes pull and CO2 terms; break time contributes break cost; charging affects EV feasibility and capacity.",
+        "Reading guide: high deadhead values indicate more repositioning, high break values indicate more stationary paid time, and high charge values indicate stronger EV charging use.",
         ha="center",
-        fontsize=8,
+        fontsize=8.0,
         color="#495057",
     )
-    fig.tight_layout(rect=(0, 0.09, 1, 0.88))
+    fig.tight_layout(rect=(0, 0.05, 1, 0.91))
     fig.savefig(path)
     plt.close(fig)
 
