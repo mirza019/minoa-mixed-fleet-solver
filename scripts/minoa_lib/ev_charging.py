@@ -121,8 +121,8 @@ def _make_block_electric_legacy_result(
 ) -> BlockChargingResult | None:
     """Try converting one block to EV by charging greedily during existing breaks.
 
-    This is the validated default used by the main multistart experiments. It
-    keeps the block structure fixed and rewrites only existing break windows.
+    This is the default used by the main multistart experiments. It keeps the
+    block structure fixed and rewrites only existing break windows.
     """
     candidate = copy.deepcopy(block_wrap)
     block = candidate["vehicleBlock"]

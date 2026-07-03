@@ -27,7 +27,7 @@ OPTIMIZED_APPROACH_NAME = "multi-start path-cover"
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
-            "Normalize MINOA senior inputs into validator-compatible working copies, "
+            "Normalize MINOA senior inputs into MINOA-format working copies, "
             "solve them, validate them, and print a cost table."
         )
     )

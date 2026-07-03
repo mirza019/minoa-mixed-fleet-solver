@@ -46,6 +46,7 @@ results/
 docs/
 documentation/
 *.md
+!/README.md
 *.rst
 *.adoc
 scripts/minoa_make_latex_thesis.py

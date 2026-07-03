@@ -34,7 +34,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--ev-mode",
         choices=["none", "no-charge", "charging"],
         default="charging",
-        help="EV assignment mode. charging inserts validator-compatible charge windows during existing breaks.",
+        help="EV assignment mode. charging inserts MINOA-format charge windows during existing breaks.",
     )
     parser.add_argument(
         "--tt-variant",
