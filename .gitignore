@@ -43,6 +43,9 @@ thesis-templates-master.zip
 updates/
 output/
 results/
+!results/
+results/*
+!results/final_validated_results.json
 docs/
 documentation/
 *.md

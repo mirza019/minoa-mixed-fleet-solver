@@ -66,7 +66,7 @@ jobs:
           echo "| EV mode | \`charging\` |" >> "$GITHUB_STEP_SUMMARY"
           echo "| Validator | \`tools/minoa/desktopValidator/desktopValidator/desktopValidator.jar\` |" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "### Validator-backed result table" >> "$GITHUB_STEP_SUMMARY"
+          echo "### Independent audit result table" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           if [[ -f "$report" ]]; then
             cat "$report" >> "$GITHUB_STEP_SUMMARY"

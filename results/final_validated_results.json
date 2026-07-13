@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "description": "Canonical final validated thesis results for the MINOA Senior benchmark.",
+  "method": "final no-regression archive",
+  "headline_results": [
+    {
+      "instance": "Small",
+      "scope": "Headline",
+      "validated_cost": 162.44,
+      "vehicles": 2,
+      "headline_instance": true,
+      "final_no_regression_archive": true
+    },
+    {
+      "instance": "Medium",
+      "scope": "Headline",
+      "validated_cost": 371.35,
+      "vehicles": 5,
+      "headline_instance": true,
+      "final_no_regression_archive": true
+    },
+    {
+      "instance": "Large",
+      "scope": "Headline",
+      "validated_cost": 1163.35,
+      "vehicles": 15,
+      "headline_instance": true,
+      "final_no_regression_archive": true
+    }
+  ],
+  "full_benchmark_summary": {
+    "scope": "Full Senior benchmark",
+    "instance_or_benchmark": "12 instances total",
+    "total_validated_cost": 10000.48,
+    "total_vehicles": 126,
+    "final_no_regression_archive": true
+  }
+}
