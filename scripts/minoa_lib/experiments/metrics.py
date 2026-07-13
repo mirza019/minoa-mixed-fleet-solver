@@ -4,7 +4,8 @@ import json
 import re
 from pathlib import Path
 
-from ..costs import cost_breakdown
+from ..costs import assert_cost_reconciled, cost_breakdown, cost_residual
+from ..lower_bounds import selected_timetable_fixed_cost_lower_bound
 from ..network import arc_by_code, trip_by_id
 from ..types import JsonDict
 from ..validation import validate
@@ -103,17 +104,18 @@ def evaluate_solution(input_path: Path, output_path: Path, validator_path: Path)
     objective = parse_vs_cost(result.stdout)
     valid = result.returncode == 0 and objective is not None
     costs = cost_breakdown(input_data, data)
+    selected_lb = selected_timetable_fixed_cost_lower_bound(input_data, data)
+    global_lb = float(data.get("reportSol", {}).get("lowerBound", 0.0) or 0.0)
     fixed_cost = costs.fixed_cost
     pull_cost = costs.pull_cost
     co2_cost = costs.co2_cost
     break_cost = costs.break_cost
     estimated_cost = costs.total
+    official_residual = None
     if objective is not None:
-        # The validator is the official objective authority. Fixed, pull, and
-        # CO2 costs are direct input-field products; the remaining official
-        # amount is the validator-aligned paid break component.
-        break_cost = objective - fixed_cost - pull_cost - co2_cost
-        estimated_cost = objective
+        official_residual = cost_residual(objective, costs)
+        if valid:
+            assert_cost_reconciled(objective, costs)
     return {
         "instance": instance_name(input_path),
         "approach": approach_name(output_path),
@@ -126,7 +128,16 @@ def evaluate_solution(input_path: Path, output_path: Path, validator_path: Path)
         "pull_cost": pull_cost,
         "co2_cost": co2_cost,
         "estimated_cost": estimated_cost,
-        "validator_cost_delta": objective - estimated_cost if objective is not None else None,
+        "official_residual": official_residual,
+        "validator_cost_delta": official_residual,
+        "global_lower_bound": global_lb,
+        "global_bound_gap_ub": 100.0 * (objective - global_lb) / objective if objective else None,
+        "selected_tt_lower_bound": selected_lb.fixed_cost_lb,
+        "selected_tt_vehicle_count_lb": selected_lb.vehicle_count_lb,
+        "selected_tt_overlap_vehicle_count_lb": selected_lb.overlap_vehicle_lb,
+        "selected_tt_path_cover_vehicle_count_lb": selected_lb.path_cover_vehicle_lb,
+        "selected_tt_bound_scope": selected_lb.scope,
+        "selected_tt_bound_gap_ub": selected_lb.gap_ub_percent(objective),
         "validator_output": result.stdout,
         **block_metrics(data),
     }

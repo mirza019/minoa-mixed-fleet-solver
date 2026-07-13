@@ -23,7 +23,7 @@ def node_capacity(data: JsonDict, node_name: str, spot: str) -> int:
 
 @dataclass
 class CapacityLedger:
-    """Minute-level reservation ledger matching the validator's capacity logic."""
+    """Minute-level reservation ledger for parking and charger capacity checks."""
 
     data: JsonDict
     usage: dict[tuple[str, str, int], int] = field(default_factory=dict)

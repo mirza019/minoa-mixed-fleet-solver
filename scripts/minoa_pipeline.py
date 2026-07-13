@@ -11,8 +11,10 @@ from pathlib import Path
 from typing import Any
 
 from minoa_lib.experiments.metrics import block_metrics, instance_name, parse_vs_cost
-from minoa_lib.costs import cost_breakdown
-from minoa_optimize import variant_vectors
+from minoa_lib.costs import assert_cost_reconciled, cost_breakdown, cost_residual
+from minoa_lib.lower_bounds import selected_timetable_fixed_cost_lower_bound
+from minoa_lib.reporting import update_report_sol
+from minoa_optimize import search_configs, solver_environment, variant_vectors
 from minoa_lib.solver import solve
 
 
@@ -25,7 +27,7 @@ OPTIMIZED_APPROACH_NAME = "multi-start path-cover"
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
-            "Normalize MINOA senior inputs into validator-compatible working copies, "
+            "Normalize MINOA senior inputs into MINOA-format working copies, "
             "solve them, validate them, and print a cost table."
         )
     )
@@ -74,6 +76,11 @@ def build_parser() -> argparse.ArgumentParser:
         default=True,
         help="Use local-search optimization for Small, Medium, and Large so the headline rows reproduce 2/5/15 vehicles.",
     )
+    parser.add_argument(
+        "--optimized-all",
+        action="store_true",
+        help="Run the adaptive multi-start path-cover neighborhoods for every normalized Senior instance.",
+    )
     return parser
 
 
@@ -90,7 +97,9 @@ def main() -> None:
             continue
         input_path = Path(item["processed"])
         output_path = args.output_dir / f"{validator_safe_stem(input_path)}_Output_pipeline.json"
-        if args.optimized_headliners and item["instance"] in {"Small", "Medium", "Large"}:
+        if args.optimized_all:
+            row = optimize_instance(input_path, output_path, args, item["instance"])
+        elif args.optimized_headliners and item["instance"] in {"Small", "Medium", "Large"}:
             row = optimize_headliner(input_path, output_path, args, item["instance"])
         else:
             row = solve_validate_with_repairs(input_path, output_path, args)
@@ -230,6 +239,7 @@ def optimize_headliner(
     vectors = pipeline_variant_vectors(input_path, settings)
     best_cost: float | None = None
     best_path: Path | None = None
+    input_data = json.loads(input_path.read_text())
 
     previous_gap = os.environ.get("MINOA_DEPOT_BRIDGE_MIN_GAP")
     os.environ["MINOA_DEPOT_BRIDGE_MIN_GAP"] = "999999"
@@ -243,13 +253,12 @@ def optimize_headliner(
                     ev_mode="charging",
                     tt_variants=vector,
                 )
+                internal_cost = cost_breakdown(input_data, output).total
                 candidate_path.write_text(json.dumps(output, indent=2))
             except Exception:
                 continue
-            validation = run_validator(args.validator, input_path, candidate_path)
-            cost = parse_vs_cost(validation)
-            if cost is not None and (best_cost is None or cost < best_cost):
-                best_cost = cost
+            if best_cost is None or internal_cost < best_cost:
+                best_cost = internal_cost
                 best_path = candidate_path
                 shutil.copyfile(candidate_path, output_path)
     finally:
@@ -260,7 +269,105 @@ def optimize_headliner(
 
     if best_cost is None or best_path is None:
         return solve_validate_with_repairs(input_path, output_path, args)
-    return success_row(input_path, output_path, best_cost, OPTIMIZED_APPROACH_NAME)
+    validation = run_validator(args.validator, input_path, output_path)
+    external_cost = parse_vs_cost(validation)
+    if external_cost is None:
+        return error_row(instance_name(input_path), OPTIMIZED_APPROACH_NAME, summarize_error(validation))
+    return success_row(input_path, output_path, external_cost, OPTIMIZED_APPROACH_NAME)
+
+
+def optimize_instance(
+    input_path: Path,
+    output_path: Path,
+    args: argparse.Namespace,
+    instance: str,
+) -> dict[str, Any]:
+    settings = adaptive_settings(input_path, instance)
+    vectors = pipeline_variant_vectors(input_path, settings)
+
+    class SearchArgs:
+        pass
+
+    search_args = SearchArgs()
+    search_args.edge_mode = "time"
+    search_args.ev_strategy = "legacy"
+    search_args.ev_mode = "charging"
+    search_args.no_adaptive = False
+    configs = search_configs(search_args)
+
+    best_cost: float | None = None
+    best_path: Path | None = None
+    tried = 0
+    valid = 0
+    input_data = json.loads(input_path.read_text())
+
+    start = None
+    try:
+        import time
+
+        start = time.perf_counter()
+    except Exception:
+        pass
+
+    for config_index, config in enumerate(configs):
+        for run_index, vector in enumerate(vectors):
+            if start is not None and time.perf_counter() - start >= settings["time_limit"]:
+                break
+            tried += 1
+            candidate_path = output_path.with_name(
+                f"{output_path.stem}_opt_{config_index:02d}_{run_index:03d}.json"
+            )
+            try:
+                with solver_environment(config):
+                    output, _stats = solve(
+                        input_path,
+                        builder="pathcover-cost",
+                        ev_mode="charging",
+                        tt_variants=vector,
+                        edge_mode=config.edge_mode,
+                        ev_strategy=config.ev_strategy,
+                    )
+                internal_cost = cost_breakdown(input_data, output).total
+                candidate_path.write_text(json.dumps(output, indent=2))
+            except Exception:
+                continue
+            valid += 1
+            if best_cost is None or internal_cost < best_cost:
+                best_cost = internal_cost
+                best_path = candidate_path
+                shutil.copyfile(candidate_path, output_path)
+        if start is not None and time.perf_counter() - start >= settings["time_limit"]:
+            break
+
+    if best_cost is None or best_path is None:
+        return solve_validate_with_repairs(input_path, output_path, args)
+    validation = run_validator(args.validator, input_path, output_path)
+    external_cost = parse_vs_cost(validation)
+    if external_cost is None:
+        return error_row(instance_name(input_path), OPTIMIZED_APPROACH_NAME, summarize_error(validation))
+    row = success_row(input_path, output_path, external_cost, OPTIMIZED_APPROACH_NAME)
+    row["Approach"] = f"{OPTIMIZED_APPROACH_NAME} adaptive"
+    row["Search tried"] = tried
+    row["Search valid"] = valid
+    return row
+
+
+def adaptive_settings(input_path: Path, instance: str) -> dict[str, int]:
+    if instance == "Small":
+        return {"variants": 8, "local_iterations": 16, "seed": 19, "time_limit": 75}
+    if instance == "Medium":
+        return {"variants": 8, "local_iterations": 14, "seed": 103, "time_limit": 90}
+    if instance == "Large":
+        return {"variants": 8, "local_iterations": 10, "seed": 23, "time_limit": 120}
+    data = json.loads(input_path.read_text())
+    directions = len(data.get("directions", []))
+    candidate_trips = sum(len(wrap["direction"].get("trips", [])) for wrap in data.get("directions", []))
+    return {
+        "variants": 6 if directions <= 4 else 4,
+        "local_iterations": min(8, max(3, directions)),
+        "seed": 97 + directions + candidate_trips % 17,
+        "time_limit": 45 if candidate_trips <= 350 else 75,
+    }
 
 
 def pipeline_variant_vectors(input_path: Path, settings: dict[str, int]) -> list[list[int]]:
@@ -286,6 +393,7 @@ def run_validator(validator: Path, input_path: Path, output_path: Path) -> str:
 
 
 def success_row(input_path: Path, output_path: Path, cost: float, approach: str) -> dict[str, Any]:
+    update_report_sol(output_path, upper_bound=cost)
     row = metrics_row(input_path, output_path, approach)
     row.update({"Valid": "yes", "Cost": cost, "Best cost": cost, "Gap to best (%)": 0.0, "Error": ""})
     add_cost_components(row, input_path, output_path, cost)
@@ -302,6 +410,11 @@ def metrics_row(input_path: Path, output_path: Path, approach: str) -> dict[str,
         "Break cost": None,
         "Pull cost": None,
         "CO2 cost": None,
+        "Residual": None,
+        "Global LB": None,
+        "Global gap UB (%)": None,
+        "Selected-TT LB": None,
+        "Selected-TT gap UB (%)": None,
         "Best cost": None,
         "Gap to best (%)": None,
         "Vehicles": None,
@@ -318,6 +431,10 @@ def metrics_row(input_path: Path, output_path: Path, approach: str) -> dict[str,
     if output_path.exists():
         try:
             metrics = block_metrics(json.loads(output_path.read_text()))
+            output_data = json.loads(output_path.read_text())
+            input_data = json.loads(input_path.read_text())
+            selected_lb = selected_timetable_fixed_cost_lower_bound(input_data, output_data)
+            global_lb = float(output_data.get("reportSol", {}).get("lowerBound", 0.0) or 0.0)
             row.update(
                 {
                     "Vehicles": metrics["total_blocks"],
@@ -328,6 +445,8 @@ def metrics_row(input_path: Path, output_path: Path, approach: str) -> dict[str,
                     "Deadhead min": metrics["deadhead_min"],
                     "Break min": metrics["break_min"],
                     "Charge min": metrics["charging_min"],
+                    "Global LB": global_lb,
+                    "Selected-TT LB": selected_lb.fixed_cost_lb,
                 }
             )
         except Exception as exc:
@@ -345,6 +464,11 @@ def error_row(instance: str, approach: str, error: str) -> dict[str, Any]:
         "Break cost": None,
         "Pull cost": None,
         "CO2 cost": None,
+        "Residual": None,
+        "Global LB": None,
+        "Global gap UB (%)": None,
+        "Selected-TT LB": None,
+        "Selected-TT gap UB (%)": None,
         "Best cost": None,
         "Gap to best (%)": None,
         "Vehicles": None,
@@ -375,13 +499,21 @@ def add_cost_components(row: dict[str, Any], input_path: Path, output_path: Path
         input_data = json.loads(input_path.read_text())
         output_data = json.loads(output_path.read_text())
         costs = cost_breakdown(input_data, output_data)
-        break_cost = validator_cost - costs.fixed_cost - costs.pull_cost - costs.co2_cost
+        residual = cost_residual(validator_cost, costs)
+        assert_cost_reconciled(validator_cost, costs)
+        selected_lb = selected_timetable_fixed_cost_lower_bound(input_data, output_data)
+        global_lb = float(output_data.get("reportSol", {}).get("lowerBound", 0.0) or 0.0)
         row.update(
             {
                 "Fixed": costs.fixed_cost,
-                "Break cost": break_cost,
+                "Break cost": costs.break_cost,
                 "Pull cost": costs.pull_cost,
                 "CO2 cost": costs.co2_cost,
+                "Residual": residual,
+                "Global LB": global_lb,
+                "Global gap UB (%)": 100.0 * (validator_cost - global_lb) / validator_cost if validator_cost else None,
+                "Selected-TT LB": selected_lb.fixed_cost_lb,
+                "Selected-TT gap UB (%)": selected_lb.gap_ub_percent(validator_cost),
             }
         )
     except Exception as exc:
@@ -398,6 +530,11 @@ def markdown_table(rows: list[dict[str, Any]]) -> str:
         "Break cost",
         "Pull cost",
         "CO2 cost",
+        "Residual",
+        "Global LB",
+        "Global gap UB (%)",
+        "Selected-TT LB",
+        "Selected-TT gap UB (%)",
         "Best cost",
         "Gap to best (%)",
         "Vehicles",

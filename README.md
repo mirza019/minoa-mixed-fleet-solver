@@ -5,11 +5,10 @@ challenge. The task is to select timetable trips, build vehicle schedules, assig
 electric or conventional buses, and add charging when it is possible.
 
 The main method is a **multi-start path-cover matheuristic**. Here, this means a
-practical heuristic that uses graph-optimization ideas. It does not use Pyomo or
-Gurobi. In simple words, the solver creates several timetable variants, connects
-compatible trips in a graph, turns graph paths into vehicle blocks, assigns
-ICE/EV vehicles, and then checks the final output with the official desktop
-validator.
+practical heuristic that uses graph-optimization ideas. In simple words, the
+solver creates several timetable variants, connects compatible trips in a graph,
+turns graph paths into vehicle blocks, assigns ICE/EV vehicles, and then checks
+the final output with an external feasibility and objective audit.
 
 ## Repository Contents
 
@@ -18,10 +17,12 @@ scripts/
   minoa_solver.py              Single-instance solver CLI
   minoa_optimize.py            Multi-start search for stronger headline results
   minoa_pipeline.py            Normalizes raw inputs, solves, validates, reports
-  minoa_report.py              Validator-backed table reporter
+  minoa_report.py              External-validator table reporter
   run_experiment.py            One-command runner with --algorithm
   run_sml_experiments.py       Small/Medium/Large experiment runner
   run_all_experiments.py       All-instance experiment runner
+  run_lower_bounds.py          Global and selected-timetable bound reporter
+  generate_lower_bound_figures.py  Lower-bound plots from CSV results
   minoa_lib/                   Solver modules
 
 data/raw/minoa/senior/
@@ -33,19 +34,8 @@ tools/minoa/desktopValidator/desktopValidator/desktopValidator.jar
 .github/workflows/
   MINOA Headline Instances     Runs Small, Medium, Large separately
   MINOA All Instances          Runs all senior instances
+  Final Results Check          Checks the canonical thesis result table
 ```
-
-Each important folder also has a short README:
-
-| Path | What it explains |
-|---|---|
-| [`scripts/README.md`](scripts/README.md) | Which command-line script does what. |
-| [`scripts/minoa_lib/README.md`](scripts/minoa_lib/README.md) | How the implementation modules are separated. |
-| [`scripts/ci/README.md`](scripts/ci/README.md) | Shell wrappers used by GitHub Actions. |
-| [`data/raw/minoa/README.md`](data/raw/minoa/README.md) | Raw-data handling policy. |
-| [`data/raw/minoa/senior/README.md`](data/raw/minoa/senior/README.md) | Instance list and headline/additional split. |
-| [`tools/minoa/README.md`](tools/minoa/README.md) | Desktop validator location and usage. |
-| [`.github/workflows/README.md`](.github/workflows/README.md) | CI workflow behavior and artifacts. |
 
 Generated outputs are written under `outputs/`. They are ignored by Git because
 they can be regenerated.
@@ -152,21 +142,135 @@ check them with the validator and print a table.
   data/raw/minoa/senior/Large_Input_S.json:outputs/minoa/headline/Large_Output_multi_start_pathcover.json
 ```
 
+## Lower-Bound Reports
+
+The feasible schedules are upper bounds. Lower-bound reporting is separated
+into two scopes:
+
+- `Global LB`: a globally valid timetable-overlap lower bound, or `0.0` when no
+  certified value is available within the time limit.
+- `Selected-TT LB`: a diagnostic lower bound for the timetable already selected
+  by one output file. This is useful for analysis, but it is not a global
+  optimality certificate.
+
+Run the lower-bound report for Small, Medium, and Large:
+
+```bash
+.venv/bin/python scripts/run_lower_bounds.py \
+  --scope sml \
+  --time-limit 60 \
+  --output-csv results/lower_bounds/sml_lower_bounds.csv
+```
+
+Run it for all senior instances and regenerate the thesis figures:
+
+```bash
+.venv/bin/python scripts/run_lower_bounds.py \
+  --scope all \
+  --input-dir data/processed/minoa/final_adaptive_bounded \
+  --archive-csv outputs/minoa/final_archive/final_results.csv \
+  --time-limit 180 \
+  --output-csv results/lower_bounds/all_instances_lower_bounds.csv
+
+.venv/bin/python scripts/generate_lower_bound_figures.py \
+  --csv results/lower_bounds/all_instances_lower_bounds.csv \
+  --out-dir FAU_Thesis_temp/figures
+```
+
+## Regenerate Thesis Result Graphs
+
+Use the commands in this section when you only want to regenerate the numerical
+graphs used in the thesis result chapter. These commands do not regenerate the
+conceptual workflow diagrams or method flowcharts.
+
+First make sure the final verified archive exists:
+
+```bash
+.venv/bin/python scripts/run_experiment.py --algorithm multistart --scope all
+```
+
+Then regenerate the result graphs based on the final validated archive:
+
+```bash
+.venv/bin/python scripts/minoa_make_constraint_figures.py
+```
+
+This updates the cost, fleet-mix, operational-component, efficiency,
+resource-pressure, and all-instance result graphs in:
+
+```text
+FAU_Thesis_temp/figures/
+```
+
+If the lower-bound graphs are also needed, first refresh the lower-bound CSV and
+then regenerate the lower-bound figures:
+
+```bash
+.venv/bin/python scripts/run_lower_bounds.py \
+  --scope all \
+  --input-dir data/processed/minoa/final_adaptive_bounded \
+  --archive-csv outputs/minoa/final_archive/final_results.csv \
+  --time-limit 180 \
+  --output-csv results/lower_bounds/all_instances_lower_bounds.csv
+
+.venv/bin/python scripts/generate_lower_bound_figures.py \
+  --csv results/lower_bounds/all_instances_lower_bounds.csv \
+  --out-dir FAU_Thesis_temp/figures
+```
+
+Finally, create a figure audit file that records which graph came from which
+data source:
+
+```bash
+.venv/bin/python scripts/minoa_figure_audit.py
+```
+
+The audit is written to:
+
+```text
+outputs/minoa/final_archive/figure_audit.md
+```
+
+Note: `scripts/generate_thesis_figures.py` regenerates both numerical result
+graphs and conceptual method figures. For result graphs only, use the commands
+above.
+
 ## Headline Results
 
 Current headline results:
+
+The canonical machine-readable result file is:
+
+```text
+results/final_validated_results.json
+```
+
+The compact final thesis result table is:
+
+| Scope | Instance / Benchmark | Validated cost | Vehicles |
+|---|---:|---:|---:|
+| Headline | Small | 162.44 | 2 |
+| Headline | Medium | 371.35 | 5 |
+| Headline | Large | 1163.35 | 15 |
+| Full Senior benchmark | 12 instances total | 10000.48 | 126 |
+
+The detailed table below is the final archive used for the thesis. A fresh multi-start
+run is a search procedure and may find an equal or better candidate when it is
+allowed to use the full time limit. In that case, the new output should be
+validated and reported separately instead of silently replacing the archived
+thesis table.
 
 | Instance | Approach | Valid | Cost | Vehicles | EV | ICE | EV share | Trips | Deadhead min | Break min | Charge min |
 |---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
 | Small | Multi-start path-cover | yes | 162.44 | 2 | 0 | 2 | 0.00% | 48 | 42.00 | 240.00 | 0.00 |
 | Medium | Multi-start path-cover | yes | 371.35 | 5 | 5 | 0 | 100.00% | 139 | 752.00 | 1717.00 | 391.00 |
-| Large | Multi-start path-cover | yes | 1165.24 | 15 | 5 | 10 | 33.33% | 260 | 2139.00 | 2448.00 | 518.00 |
+| Large | Multi-start path-cover | yes | 1163.35 | 15 | 5 | 10 | 33.33% | 260 | 2600.00 | 2520.00 | 505.00 |
 
 Headline totals:
 
 | Metric | Value |
 |---|---:|
-| Total cost | 1699.03 |
+| Total cost | 1697.15 |
 | Total vehicles | 22 |
 | EV vehicles | 10 |
 | ICE vehicles | 12 |
@@ -188,7 +292,7 @@ This table shows how the method improved step by step.
 | Large | Greedy constructive | yes | 1242.33 | 15 | 0 | 15 | 0.00% | 260 | 6960 | 3.74% | 2732.00 | 2829.00 | 0.00 |
 | Large | Path-cover | yes | 1259.95 | 15 | 0 | 15 | 0.00% | 260 | 6960 | 3.74% | 2351.00 | 3210.00 | 0.00 |
 | Large | Charging-aware path-cover | yes | 1169.28 | 15 | 5 | 10 | 33.33% | 260 | 6960 | 3.74% | 3215.00 | 2346.00 | 686.00 |
-| Large | Multi-start path-cover | yes | 1165.24 | 15 | 5 | 10 | 33.33% | 260 | 6960 | 3.74% | 2139.00 | 2448.00 | 518.00 |
+| Large | Multi-start path-cover | yes | 1163.35 | 15 | 5 | 10 | 33.33% | 260 | 6960 | 3.74% | 2600.00 | 2520.00 | 505.00 |
 
 ## All-Instance Results
 
@@ -207,14 +311,30 @@ Current all-instance totals:
 | Metric | Value |
 |---|---:|
 | Feasible instances | 12 / 12 |
-| Total cost | 10806.44 |
-| Total vehicles | 136 |
-| EV vehicles | 47 |
-| ICE vehicles | 89 |
+| Total cost | 10000.48 |
+| Total vehicles | 126 |
+| EV vehicles | 32 |
+| ICE vehicles | 94 |
+
+The final archive is no-regression: if a new adaptive candidate is not better
+than the previous validated solution for an instance, the previous solution is
+kept.
 
 ## GitHub Actions
 
-Two workflows are provided.
+Three workflows are provided.
+
+### Final Results Check
+
+Workflow file:
+
+```text
+.github/workflows/results-check.yml
+```
+
+This workflow reads `results/final_validated_results.json`, prints the compact
+final thesis table, and fails if any expected final value is missing or
+inconsistent.
 
 ### MINOA Headline Instances
 
@@ -264,6 +384,7 @@ Artifacts:
 
 | Workflow | Artifact |
 |---|---|
+| Final Results Check | no output artifact |
 | MINOA Headline Instances | `minoa-small-outputs`, `minoa-medium-outputs`, `minoa-large-outputs` |
 | MINOA All Instances | `minoa-all-instance-outputs` |
 
