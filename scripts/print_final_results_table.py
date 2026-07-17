@@ -22,6 +22,24 @@ EXPECTED_FULL = {
     "total_vehicles": 126,
 }
 TOLERANCE = 1e-6
+DETAIL_COLUMNS = [
+    ("Instance", "instance"),
+    ("Approach", "approach"),
+    ("Valid", "valid"),
+    ("Cost", "cost"),
+    ("Fixed", "fixed_cost"),
+    ("Break cost", "break_cost"),
+    ("Pull cost", "pull_cost"),
+    ("CO2 cost", "co2_cost"),
+    ("Vehicles", "vehicles"),
+    ("EV vehicles", "ev_vehicles"),
+    ("ICE vehicles", "ice_vehicles"),
+    ("EV share (%)", "ev_share_percent"),
+    ("Trips", "trips"),
+    ("Deadhead min", "deadhead_min"),
+    ("Break min", "break_min"),
+    ("Charge min", "charge_min"),
+]
 
 
 def _load_results(path: Path) -> dict[str, Any]:
@@ -33,6 +51,16 @@ def _load_results(path: Path) -> dict[str, Any]:
 
 def _fmt_cost(value: Any) -> str:
     return f"{float(value):.2f}"
+
+
+def _fmt_value(value: Any) -> str:
+    if isinstance(value, bool):
+        return "yes" if value else "no"
+    if value is None:
+        return "-"
+    if isinstance(value, float):
+        return f"{value:.2f}"
+    return str(value)
 
 
 def _status(expected: float | int, actual: Any) -> str:
@@ -51,6 +79,33 @@ def _headline_by_instance(data: dict[str, Any]) -> dict[str, dict[str, Any]]:
             raise ValueError("Each headline_results row must contain an instance")
         by_instance[str(row["instance"])] = row
     return by_instance
+
+
+def _canonical_instance_name(value: str) -> str:
+    aliases = {
+        "small": "Small",
+        "medium": "Medium",
+        "large": "Large",
+    }
+    return aliases.get(value.strip(), value.strip())
+
+
+def _detail_rows(data: dict[str, Any]) -> list[dict[str, Any]]:
+    rows = data.get("final_archive_results")
+    if not isinstance(rows, list):
+        raise ValueError("Missing or invalid field: final_archive_results")
+    for row in rows:
+        if not isinstance(row, dict) or "instance" not in row:
+            raise ValueError("Each final_archive_results row must contain an instance")
+    return rows
+
+
+def _markdown_table(headers: list[str], rows: list[list[str]]) -> list[str]:
+    return [
+        "| " + " | ".join(headers) + " |",
+        "| " + " | ".join("---" for _ in headers) + " |",
+        *("| " + " | ".join(row) + " |" for row in rows),
+    ]
 
 
 def build_tables(data: dict[str, Any]) -> tuple[str, bool]:
@@ -75,6 +130,38 @@ def build_tables(data: dict[str, Any]) -> tuple[str, bool]:
     lines.append(
         "| Full Senior benchmark | 12 instances total | "
         f"{_fmt_cost(summary['total_validated_cost'])} | {int(summary['total_vehicles'])} |"
+    )
+
+    detail_rows = _detail_rows(data)
+    lines.extend(
+        [
+            "",
+            "## Final no-regression archive table",
+            "",
+            "This is the canonical table used for the thesis result summary.",
+            "",
+        ]
+    )
+    detail_headers = [header for header, _ in DETAIL_COLUMNS]
+    detail_values = [
+        [_fmt_value(row.get(key)) for _, key in DETAIL_COLUMNS]
+        for row in detail_rows
+    ]
+    lines.extend(_markdown_table(detail_headers, detail_values))
+    lines.extend(
+        [
+            "",
+            "## Final archive totals",
+            "",
+            "| Metric | Value |",
+            "|---|---:|",
+            f"| Feasible instances | {sum(1 for row in detail_rows if row.get('valid'))} / {len(detail_rows)} |",
+            f"| Total validated cost | {_fmt_cost(summary['total_validated_cost'])} |",
+            f"| Total vehicles | {int(summary['total_vehicles'])} |",
+            f"| EV vehicles | {int(summary.get('ev_vehicles', 0))} |",
+            f"| ICE vehicles | {int(summary.get('ice_vehicles', 0))} |",
+            f"| Selected trips | {int(summary.get('selected_trips', 0))} |",
+        ]
     )
 
     lines.extend(
@@ -111,6 +198,16 @@ def build_tables(data: dict[str, Any]) -> tuple[str, bool]:
         EXPECTED_FULL["total_vehicles"], summary.get("total_vehicles")
     )
     all_passed = all_passed and total_cost_status == "PASS" and total_vehicle_status == "PASS"
+    detail_total_cost = round(sum(float(row["cost"]) for row in detail_rows), 2)
+    detail_total_vehicles = sum(int(row["vehicles"]) for row in detail_rows)
+    detail_cost_status = _status(EXPECTED_FULL["total_validated_cost"], detail_total_cost)
+    detail_vehicle_status = _status(EXPECTED_FULL["total_vehicles"], detail_total_vehicles)
+    all_passed = (
+        all_passed
+        and detail_cost_status == "PASS"
+        and detail_vehicle_status == "PASS"
+        and all(bool(row.get("valid")) for row in detail_rows)
+    )
     lines.append(
         f"| Total cost | {_fmt_cost(EXPECTED_FULL['total_validated_cost'])} | "
         f"{_fmt_cost(summary.get('total_validated_cost'))} | {total_cost_status} |"
@@ -119,7 +216,39 @@ def build_tables(data: dict[str, Any]) -> tuple[str, bool]:
         f"| Total vehicles | {EXPECTED_FULL['total_vehicles']} | "
         f"{int(summary.get('total_vehicles'))} | {total_vehicle_status} |"
     )
+    lines.append(
+        f"| Detailed row cost sum | {_fmt_cost(EXPECTED_FULL['total_validated_cost'])} | "
+        f"{_fmt_cost(detail_total_cost)} | {detail_cost_status} |"
+    )
+    lines.append(
+        f"| Detailed row vehicle sum | {EXPECTED_FULL['total_vehicles']} | "
+        f"{detail_total_vehicles} | {detail_vehicle_status} |"
+    )
     return "\n".join(lines) + "\n", all_passed
+
+
+def build_instance_table(data: dict[str, Any], instance: str) -> tuple[str, bool]:
+    instance = _canonical_instance_name(instance)
+    headline = _headline_by_instance(data)
+    expected = EXPECTED_HEADLINE.get(instance)
+    row = headline.get(instance)
+    if expected is None or row is None:
+        raise ValueError(f"No canonical headline result is available for {instance}")
+
+    cost_status = _status(expected["validated_cost"], row.get("validated_cost"))
+    vehicle_status = _status(expected["vehicles"], row.get("vehicles"))
+    lines = [
+        f"## Canonical thesis result for {instance}",
+        "",
+        "| Instance | Validated cost | Vehicles | Cost check | Vehicle check |",
+        "|---|---:|---:|---:|---:|",
+        (
+            f"| {instance} | {_fmt_cost(row['validated_cost'])} | {int(row['vehicles'])} | "
+            f"{cost_status} | {vehicle_status} |"
+        ),
+        "",
+    ]
+    return "\n".join(lines), cost_status == "PASS" and vehicle_status == "PASS"
 
 
 def main() -> int:
@@ -135,11 +264,18 @@ def main() -> int:
         type=Path,
         help="Optional file that receives the same Markdown output.",
     )
+    parser.add_argument(
+        "--instance",
+        help="Print only one canonical headline instance table: Small, Medium, or Large.",
+    )
     args = parser.parse_args()
 
     try:
         data = _load_results(args.results)
-        markdown, all_passed = build_tables(data)
+        if args.instance:
+            markdown, all_passed = build_instance_table(data, args.instance)
+        else:
+            markdown, all_passed = build_tables(data)
     except Exception as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
         return 2

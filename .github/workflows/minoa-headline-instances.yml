@@ -47,12 +47,17 @@ jobs:
       - name: Run optimized solver and desktop validator
         env:
           MINOA_DEPOT_BRIDGE_MIN_GAP: "999999"
-        run: scripts/ci/run_headline_instance.sh "${{ matrix.instance }}"
+        run: |
+          scripts/ci/run_headline_instance.sh "${{ matrix.instance }}"
+          .venv/bin/python scripts/print_final_results_table.py \
+            --instance "${{ matrix.instance }}" \
+            --summary-file "outputs/minoa/ci/${{ matrix.instance }}_final_summary.md"
 
       - name: Publish result table to summary
         if: always()
         run: |
           report="outputs/minoa/ci/${{ matrix.instance }}_report.md"
+          final_summary="outputs/minoa/ci/${{ matrix.instance }}_final_summary.md"
           log="outputs/minoa/ci/${{ matrix.instance }}_search.log"
           echo "## MINOA ${{ matrix.instance }} result" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
@@ -65,6 +70,14 @@ jobs:
           echo "| Builder | \`pathcover-cost\` |" >> "$GITHUB_STEP_SUMMARY"
           echo "| EV mode | \`charging\` |" >> "$GITHUB_STEP_SUMMARY"
           echo "| Validator | \`tools/minoa/desktopValidator/desktopValidator/desktopValidator.jar\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "### Canonical thesis result" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          if [[ -f "$final_summary" ]]; then
+            cat "$final_summary" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "No canonical result summary was generated." >> "$GITHUB_STEP_SUMMARY"
+          fi
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "### Independent audit result table" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"

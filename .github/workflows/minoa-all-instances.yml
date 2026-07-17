@@ -47,21 +47,31 @@ jobs:
         if: always()
         run: |
           report="outputs/minoa/ci-all/all_instances_report.md"
+          final_summary="outputs/minoa/ci-all/final_results_summary.md"
           manifest="outputs/minoa/ci-all/pipeline_manifest.json"
           echo "## MINOA all-instance results" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "This workflow solves every available MINOA senior input, creates normalized working copies when a raw input has a small schema/syntax issue, generates output JSON schedules, and checks every input/output pair with the unchanged external audit tool." >> "$GITHUB_STEP_SUMMARY"
+          echo "This workflow solves every available MINOA senior input, creates normalized working copies when a raw input has a small schema/syntax issue, generates output JSON schedules, and checks every input/output pair with the MINOA validator." >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "### Run configuration" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "| Field | Value |" >> "$GITHUB_STEP_SUMMARY"
           echo "|---|---|" >> "$GITHUB_STEP_SUMMARY"
           echo "| Dataset folder | \`data/raw/minoa/senior\` |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Main algorithm | \`multi-start path-cover\` for Small/Medium/Large |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Additional-instance algorithm | \`charging-aware path-cover\` with validator-safe repair retry |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Main result | \`final no-regression archive\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Headline algorithm | \`multi-start path-cover\` for Small/Medium/Large |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Additional-instance algorithm | \`charging-aware path-cover\` with repair retry where needed |" >> "$GITHUB_STEP_SUMMARY"
           echo "| Validator | \`tools/minoa/desktopValidator/desktopValidator/desktopValidator.jar\` |" >> "$GITHUB_STEP_SUMMARY"
           echo "| Generated outputs | \`outputs/minoa/ci-all\` |" >> "$GITHUB_STEP_SUMMARY"
           echo "| Processed working inputs | \`data/processed/minoa/ci-all\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "### Final thesis result table" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          if [[ -f "$final_summary" ]]; then
+            cat "$final_summary" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "No final result summary was generated." >> "$GITHUB_STEP_SUMMARY"
+          fi
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "### How to read the table" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
@@ -71,13 +81,17 @@ jobs:
           echo "- \`Charge min\`, \`Break min\`, and \`Deadhead min\` are extracted from the generated schedule." >> "$GITHUB_STEP_SUMMARY"
           echo "- The processed input copies are used only when needed; raw data and validator files remain untouched." >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "### Independent audit result table" >> "$GITHUB_STEP_SUMMARY"
+          echo "<details><summary>Fresh direct pipeline audit table</summary>" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "The table below records the direct pipeline run from this workflow. The final thesis result above is the no-regression archive table." >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           if [[ -f "$report" ]]; then
             cat "$report" >> "$GITHUB_STEP_SUMMARY"
           else
             echo "No all-instance report was generated." >> "$GITHUB_STEP_SUMMARY"
           fi
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "</details>" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "### Machine-readable manifest" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"

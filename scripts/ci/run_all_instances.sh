@@ -8,7 +8,10 @@ echo "Running MINOA pipeline on all available senior instances"
   --input-dir data/raw/minoa/senior \
   --processed-dir data/processed/minoa/ci-all \
   --output-dir outputs/minoa/ci-all \
-  | tee outputs/minoa/ci-all/all_instances_report.md
+  | tee outputs/minoa/ci-all/run.log
+
+.venv/bin/python scripts/print_final_results_table.py \
+  --summary-file outputs/minoa/ci-all/final_results_summary.md
 
 if grep -E '\|[[:space:]]+[^|]+[[:space:]]+\|[[:space:]]+[^|]+[[:space:]]+\|[[:space:]]+no[[:space:]]+\|' outputs/minoa/ci-all/all_instances_report.md; then
   echo "At least one instance failed validation." >&2
