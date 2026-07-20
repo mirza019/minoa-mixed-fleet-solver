@@ -1,0 +1,193 @@
+\chapter{Running the Code}
+\label{app:reproducibility}
+
+This appendix gives the practical steps needed to reproduce the reported
+experiments. It is a compact execution guide for setting up the repository,
+running the solver, auditing output files, and regenerating the reported tables
+and figures.
+
+\section{System and Software Requirements}
+
+The reported experiments were run in a CPU-only local environment on macOS with
+an Apple M3 processor, 8 CPU cores, and 16 GB memory. No GPU, HPC cluster, or
+commercial optimization solver was required for the reported runs. The solver
+requires Python 3.11 or newer and the packages listed in
+\texttt{requirements.txt}. Java is required only for the external MINOA
+feasibility and objective audit.
+
+\begin{lstlisting}[basicstyle=\ttfamily\scriptsize,breaklines=true,aboveskip=4pt,belowskip=4pt]
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+java -version
+\end{lstlisting}
+
+\section{Repository Structure}
+
+The repository is organized as a code-first project. The most important tracked
+folders and files are:
+
+\begin{lstlisting}[basicstyle=\ttfamily\scriptsize,breaklines=true,aboveskip=4pt,belowskip=4pt]
+project-root/
+  .github/workflows/                  CI checks for headline and all-instance runs
+  data/raw/minoa/senior/              Senior benchmark input files
+  scripts/                            command-line runners and figure scripts
+  scripts/minoa_lib/                  implementation modules
+  tests/                              rule-focused tests
+  tools/minoa/desktopValidator/...jar external MINOA checker
+  results/final_validated_results.json canonical thesis result table
+  requirements.txt                    Python dependencies
+\end{lstlisting}
+
+Generated working files are written outside the tracked source structure, mainly
+under \texttt{outputs/minoa/} and \texttt{data/processed/minoa/}. The raw Senior
+input files are not modified by the solver.
+
+The public repository and the continuous-integration runs are available through
+the \href{https://github.com/mirza019/minoa-mixed-fleet-solver}{project
+repository}, the \href{https://github.com/mirza019/minoa-mixed-fleet-solver/actions}{GitHub
+Actions overview}, the
+\href{https://github.com/mirza019/minoa-mixed-fleet-solver/actions/workflows/minoa-headline-instances.yml}{headline
+workflow}, the
+\href{https://github.com/mirza019/minoa-mixed-fleet-solver/actions/workflows/minoa-all-instances.yml}{all-instance
+workflow}, and the
+\href{https://github.com/mirza019/minoa-mixed-fleet-solver/actions/workflows/results-check.yml}{result
+consistency workflow}.
+
+\section{Main Experiment Commands}
+
+The main entry point is \texttt{scripts/run\_experiment.py}. The final thesis
+method is selected with \texttt{--algorithm multistart}. The following commands
+cover the main reproduction workflow:
+
+\begin{lstlisting}[basicstyle=\ttfamily\scriptsize,breaklines=true,aboveskip=4pt,belowskip=4pt]
+# Headline instances: Small, Medium, Large
+.venv/bin/python scripts/run_experiment.py --algorithm multistart --scope sml
+
+# One headline instance
+.venv/bin/python scripts/run_experiment.py --algorithm multistart --scope sml --only Small
+
+# Final all-instance no-regression archive
+.venv/bin/python scripts/run_experiment.py --algorithm multistart --scope all
+
+# Optional fresh direct all-instance audit before printing the final archive
+.venv/bin/python scripts/run_experiment.py --algorithm multistart --scope all --fresh-audit
+\end{lstlisting}
+
+The all-instance archive command prints the canonical final thesis table with
+total validated cost \(10000.48\) and \(126\) used vehicle blocks. The
+\texttt{--fresh-audit} option reruns the construction pipeline first and then
+prints the retained no-regression archive.
+
+The comparison algorithms use the same command style:
+
+\begin{lstlisting}[basicstyle=\ttfamily\scriptsize,breaklines=true,aboveskip=4pt,belowskip=4pt]
+.venv/bin/python scripts/run_experiment.py --algorithm greedy --scope sml
+.venv/bin/python scripts/run_experiment.py --algorithm pathcover --scope sml
+.venv/bin/python scripts/run_experiment.py --algorithm weighted --scope sml
+.venv/bin/python scripts/run_experiment.py --algorithm multistart --scope sml
+\end{lstlisting}
+
+\section{Output Files and External Audit}
+
+Headline outputs are written to \texttt{outputs/minoa/sml\_<algorithm>/}. The
+final retained archive is stored under \texttt{outputs/minoa/final\_archive/}.
+The compact machine-readable result file is
+\texttt{results/final\_validated\_results.json}.
+
+A generated input-output pair can be audited manually with the external Java
+checker:
+
+\begin{lstlisting}[basicstyle=\ttfamily\scriptsize,breaklines=true,aboveskip=4pt,belowskip=4pt]
+java -jar tools/minoa/desktopValidator/desktopValidator/desktopValidator.jar \
+  data/raw/minoa/senior/Small_Input_S.json \
+  outputs/minoa/sml_multistart/Small_Output_multistart.json
+\end{lstlisting}
+
+The audit checks feasibility and reports the objective value for the complete
+input-output pair. It is not an optimality certificate. Existing output files
+can be summarized in a table with:
+
+\begin{lstlisting}[basicstyle=\ttfamily\scriptsize,breaklines=true,aboveskip=4pt,belowskip=4pt]
+.venv/bin/python scripts/minoa_report.py INPUT_JSON:OUTPUT_JSON
+\end{lstlisting}
+
+\section{Tables, Figures, and Lower Bounds}
+
+The final compact thesis result table is generated from
+\texttt{results/final\_validated\_results.json}:
+
+\begin{lstlisting}[basicstyle=\ttfamily\scriptsize,breaklines=true,aboveskip=4pt,belowskip=4pt]
+.venv/bin/python scripts/print_final_results_table.py
+\end{lstlisting}
+
+The numerical result graphs are regenerated with:
+
+\begin{lstlisting}[basicstyle=\ttfamily\scriptsize,breaklines=true,aboveskip=4pt,belowskip=4pt]
+.venv/bin/python scripts/minoa_make_constraint_figures.py
+\end{lstlisting}
+
+Lower-bound reports are separate from feasible schedule construction:
+
+\begin{lstlisting}[basicstyle=\ttfamily\scriptsize,breaklines=true,aboveskip=4pt,belowskip=4pt]
+.venv/bin/python scripts/run_lower_bounds.py \
+  --scope all \
+  --input-dir data/processed/minoa/final_adaptive_bounded \
+  --archive-csv outputs/minoa/final_archive/final_results.csv \
+  --time-limit 180 \
+  --output-csv results/lower_bounds/all_instances_lower_bounds.csv
+
+.venv/bin/python scripts/generate_lower_bound_figures.py \
+  --csv results/lower_bounds/all_instances_lower_bounds.csv \
+  --out-dir outputs/minoa/thesis_figures
+\end{lstlisting}
+
+Only certified global lower bounds are used as global bounds. Selected-timetable
+bounds are diagnostic values for a fixed timetable and are not global optimality
+certificates.
+
+\section{Quick-Start Recipe}
+
+The following command sequence is sufficient for a quick reproduction run:
+
+\begin{lstlisting}[basicstyle=\ttfamily\scriptsize,breaklines=true,aboveskip=4pt,belowskip=4pt]
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+
+.venv/bin/python scripts/run_experiment.py --algorithm multistart --scope sml
+.venv/bin/python scripts/run_experiment.py --algorithm multistart --scope all
+.venv/bin/python scripts/print_final_results_table.py
+\end{lstlisting}
+
+For a manual audit of a specific output file, use the Java checker command from
+the previous section.
+
+\section{Troubleshooting}
+
+\begin{table}[H]
+\centering
+\scriptsize
+\caption{Common execution issues and practical fixes.}
+\label{tab:appendix-troubleshooting}
+\begin{tabularx}{\textwidth}{p{3.8cm}X}
+\toprule
+Issue & Practical fix \\
+\midrule
+Python package missing &
+Activate \texttt{.venv} and run \texttt{python -m pip install -r requirements.txt}. \\
+Java not found &
+Run \texttt{java -version}. If it fails, install a Java Runtime Environment or JDK. \\
+Input file not found &
+Run commands from the project root and check \texttt{data/raw/minoa/senior/}. \\
+Output folder missing &
+Use the experiment wrappers; they create output folders automatically. \\
+Checker path changed &
+Pass the checker location with \texttt{--validator}. \\
+Large run is slow &
+Use \texttt{--scope sml} for a quick check. Use \texttt{--quick} only for diagnostics,
+not for final reported results. \\
+\bottomrule
+\end{tabularx}
+\end{table}

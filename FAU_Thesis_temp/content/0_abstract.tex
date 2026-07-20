@@ -1,0 +1,39 @@
+\chapter*{Abstract\markboth{Abstract}{}}
+\addcontentsline{toc}{chapter}{Abstract}
+
+Urban bus operators increasingly have to plan conventional and electric buses in
+one common system.  This creates an integrated planning problem: candidate trips
+must be selected, trips must be chained into vehicle blocks, vehicle types must
+be assigned, and electric buses must be charged without violating terminal
+capacities.  This thesis studies this problem for the MINOA Senior benchmark.
+The goal is to produce high-quality feasible schedules for mixed ICE/EV fleets
+under headway rules, vehicle-block compatibility, battery autonomy, charging
+requirements, parking and charger capacities, and the official
+vehicle-scheduling cost structure.
+
+I develop a multi-start path-cover matheuristic for this setting.  For each
+timetable variant, the method builds a compatibility graph in which selected
+trips are nodes and feasible vehicle continuations are directed edges.  Vehicle
+blocking is then modeled as a path-cover problem.  The final method combines
+graph matching, charging-aware edge scoring, EV/ICE block assignment, battery
+simulation, charging insertion, and a no-regression archive.  The matching step
+is exact for a fixed graph, while the complete method remains heuristic because
+timetable generation, edge scoring, fleet assignment, and charging decisions are
+explored through bounded candidate variants.
+
+Four algorithmic variants are implemented and compared: a greedy constructive
+heuristic, an unweighted path-cover method, a weighted path-cover method, and
+the final multi-start weighted path-cover matheuristic.  The implementation
+computes the official objective internally and writes MINOA-compatible output
+files.  The experiments were run in a CPU-only local environment without GPU or
+HPC resources, which is encouraging from a reproducibility perspective.  Final
+outputs are checked by an independent feasibility and objective audit.  The best
+validated headline results produced by the implemented method
+are 162.44 for Small, 371.35 for Medium, and 1163.35 for Large, using 2, 5,
+and 15 vehicles.  For all Senior instances, the final archive reports total
+validated cost 10000.48 and 126 vehicles.
+
+\vspace{0.35\baselineskip}
+\noindent\textbf{Keywords: }integrated timetabling, vehicle scheduling,
+mixed bus fleets, electric buses, graph matching, path cover, charging
+coordination, no-regression archive, MINOA Senior benchmark.
