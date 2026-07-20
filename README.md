@@ -85,7 +85,8 @@ source .venv/bin/activate
 # Optional: remove old generated files before a fresh run.
 rm -rf outputs/minoa data/processed/minoa results/lower_bounds
 
-# Print and check the exact final no-regression archive table used in the thesis.
+# Professor-facing thesis-result pipeline.
+# Creates/checks results/final_validated_results.json and prints the final table.
 python scripts/run_experiment.py --algorithm multistart --scope all
 
 # Generate and audit Small, Medium, and Large output JSON files.
@@ -95,11 +96,13 @@ python scripts/run_experiment.py --algorithm multistart --scope sml
 python -m pytest
 ```
 
-The first command with `--scope all` prints and checks the retained final archive
-from `results/final_validated_results.json`. This tracked file is the canonical
-machine-readable thesis result reference. If it was deleted accidentally in a
-Git clone, the result-table command recreates it from the final archive data
-defined in `scripts/print_final_results_table.py`.
+The first command with `--scope all` is the shortest professor-facing
+reproducibility command. It creates or checks
+`results/final_validated_results.json`, prints the final thesis table, and
+writes the same Markdown summary to
+`outputs/minoa/final_pipeline/final_results_summary.md`. If the JSON file was
+deleted in a fresh clone, the command recreates it before checking the expected
+Small, Medium, Large, and all-instance values.
 The second command regenerates fresh heuristic output files for Small, Medium,
 and Large and checks them with the external audit. Because multi-start search is
 bounded, a fresh direct search can produce a slightly different feasible
@@ -168,6 +171,11 @@ For the exact final thesis archive summary, use:
 ```bash
 .venv/bin/python scripts/run_experiment.py --algorithm multistart --scope all
 ```
+
+This creates/checks `results/final_validated_results.json`, writes
+`outputs/minoa/final_pipeline/final_results_summary.md`, and prints the final
+no-regression archive table used in the thesis. The final all-instance result is
+total validated cost `10000.48` and `126` vehicles.
 
 For an additional fresh direct all-instance audit before printing the archive,
 use:
@@ -387,9 +395,10 @@ Workflow file:
 .github/workflows/results-check.yml
 ```
 
-This workflow reads `results/final_validated_results.json`, prints the compact
-final thesis table, and fails if any expected final value is missing or
-inconsistent.
+This workflow creates/checks `results/final_validated_results.json`, prints the
+compact final thesis table, writes
+`outputs/minoa/final_pipeline/final_results_summary.md`, and fails if any
+expected final value is missing or inconsistent.
 
 ### MINOA Headline Instances
 

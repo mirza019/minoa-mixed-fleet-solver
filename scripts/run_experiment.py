@@ -201,12 +201,25 @@ def run_all(args: argparse.Namespace) -> None:
 
 
 def print_final_archive_summary() -> None:
-    print("\n=== Final no-regression archive thesis result ===", flush=True)
+    result_file = Path("results/final_validated_results.json")
+    summary_file = Path("outputs/minoa/final_pipeline/final_results_summary.md")
+    print("\n=== Final MINOA thesis-result pipeline ===", flush=True)
+    print(f"Creating/checking result archive: {result_file}", flush=True)
+    print(f"Writing Markdown summary: {summary_file}", flush=True)
     subprocess.run(
-        [sys.executable, "scripts/print_final_results_table.py"],
+        [
+            sys.executable,
+            "scripts/print_final_results_table.py",
+            "--results",
+            str(result_file),
+            "--summary-file",
+            str(summary_file),
+        ],
         cwd=ROOT,
         check=True,
     )
+    print(f"Result archive ready: {result_file}", flush=True)
+    print(f"Summary saved to: {summary_file}", flush=True)
 
 
 def single_run_command(

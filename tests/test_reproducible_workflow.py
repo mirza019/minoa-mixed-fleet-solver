@@ -28,6 +28,29 @@ def test_final_results_table_reports_canonical_archive_totals() -> None:
     assert "| Headline | Large | 1163.35 | 15 |" in markdown
 
 
+def test_run_experiment_final_pipeline_writes_summary(monkeypatch) -> None:
+    calls: list[list[str]] = []
+
+    def fake_run(command, cwd=None, check=False):
+        calls.append([str(part) for part in command])
+        return SimpleNamespace(returncode=0)
+
+    monkeypatch.setattr(run_experiment.subprocess, "run", fake_run)
+
+    run_experiment.print_final_archive_summary()
+
+    assert calls == [
+        [
+            sys.executable,
+            "scripts/print_final_results_table.py",
+            "--results",
+            "results/final_validated_results.json",
+            "--summary-file",
+            "outputs/minoa/final_pipeline/final_results_summary.md",
+        ]
+    ]
+
+
 def test_run_experiment_creates_output_directory_and_reports_pairs(
     tmp_path: Path, monkeypatch
 ) -> None:
