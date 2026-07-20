@@ -6,6 +6,7 @@ Examples:
     .venv/bin/python scripts/run_experiment.py --algorithm greedy
     .venv/bin/python scripts/run_experiment.py --algorithm multistart --scope sml
     .venv/bin/python scripts/run_experiment.py --algorithm weighted --scope all
+    .venv/bin/python scripts/run_experiment.py --algorithm multistart --scope all --fresh-audit
 """
 
 from __future__ import annotations
@@ -66,6 +67,15 @@ def build_parser() -> argparse.ArgumentParser:
         "--quick",
         action="store_true",
         help="Use a smaller search for multistart runs.",
+    )
+    parser.add_argument(
+        "--fresh-audit",
+        action="store_true",
+        help=(
+            "For --algorithm multistart --scope all, rerun the direct all-instance "
+            "pipeline before printing the final archive. By default the command "
+            "prints the canonical final no-regression archive table."
+        ),
     )
     parser.add_argument(
         "--input-dir",
@@ -136,6 +146,9 @@ def run_sml(args: argparse.Namespace) -> None:
 
 def run_all(args: argparse.Namespace) -> None:
     if args.algorithm == "multistart":
+        if not args.fresh_audit:
+            print_final_archive_summary()
+            return
         output_dir = args.output_dir or Path("outputs/minoa/all_multistart")
         processed_dir = args.processed_dir or Path("data/processed/minoa/all_multistart")
         command = [
@@ -154,7 +167,14 @@ def run_all(args: argparse.Namespace) -> None:
             command.append("--quick-headliners")
         else:
             command.append("--optimized-all")
-        subprocess.run(command, cwd=ROOT, check=True)
+        proc = subprocess.run(command, cwd=ROOT, check=False)
+        if proc.returncode != 0:
+            print(
+                "\nFresh direct pipeline audit finished with validation failures. "
+                "The final no-regression archive summary follows.",
+                flush=True,
+            )
+        print_final_archive_summary()
         return
 
     algorithm = ALGORITHMS[args.algorithm]
@@ -178,6 +198,15 @@ def run_all(args: argparse.Namespace) -> None:
         "--no-optimized-headliners",
     ]
     subprocess.run(command, cwd=ROOT, check=True)
+
+
+def print_final_archive_summary() -> None:
+    print("\n=== Final no-regression archive thesis result ===", flush=True)
+    subprocess.run(
+        [sys.executable, "scripts/print_final_results_table.py"],
+        cwd=ROOT,
+        check=True,
+    )
 
 
 def single_run_command(

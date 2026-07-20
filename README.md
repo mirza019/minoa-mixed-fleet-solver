@@ -37,8 +37,10 @@ tools/minoa/desktopValidator/desktopValidator/desktopValidator.jar
   Final Results Check          Checks the canonical thesis result table
 ```
 
-Generated outputs are written under `outputs/`. They are ignored by Git because
-they can be regenerated.
+Generated outputs are written mainly under `outputs/minoa/` and processed
+working inputs under `data/processed/minoa/`. These folders are ignored by Git
+because they are recreated by the runner commands. The raw Senior input files
+under `data/raw/minoa/senior/` are tracked and are not modified by the solver.
 
 ## Method Summary
 
@@ -58,7 +60,7 @@ results. It is not used to derive or repair the solution structure.
 
 ## Installation
 
-Use Python 3.11 or newer.
+Use Python 3.9 or newer. The GitHub Actions workflows use Python 3.11.
 
 ```bash
 python -m venv .venv
@@ -72,6 +74,34 @@ Java is required for the desktop validator:
 ```bash
 java -version
 ```
+
+## Quick Start
+
+From a clean checkout, run the following commands:
+
+```bash
+source .venv/bin/activate
+
+# Optional: remove old generated files before a fresh run.
+rm -rf outputs/minoa data/processed/minoa results/lower_bounds
+
+# Print the canonical final no-regression archive table used in the thesis.
+python scripts/run_experiment.py --algorithm multistart --scope all
+
+# Generate and audit Small, Medium, and Large output JSON files.
+python scripts/run_experiment.py --algorithm multistart --scope sml
+
+# Run the unit tests.
+python -m pytest
+```
+
+The first command with `--scope all` prints the retained final archive from
+`results/final_validated_results.json`. The second command regenerates fresh
+heuristic output files for Small, Medium, and Large and checks them with the
+external audit. Because multi-start search is heuristic, a fresh direct search
+may find a slightly different feasible schedule than the retained archive. The
+archive file is the canonical thesis result reference; generated output JSON
+files are intentionally not committed.
 
 ## Run Small, Medium, and Large
 
@@ -110,9 +140,9 @@ Quick test:
 
 ## Run All Senior Instances
 
-This command runs all available senior instances. Small, Medium, and Large use
-the optimized headline search. The other instances use the robust
-charging-aware path-cover pipeline.
+This command runs all available Senior instances through the direct pipeline.
+Small, Medium, and Large use the optimized headline search. The other instances
+use the robust charging-aware path-cover pipeline.
 
 ```bash
 .venv/bin/python scripts/run_all_experiments.py
@@ -128,6 +158,19 @@ The all-instance report is written to:
 
 ```text
 outputs/minoa/all_instances/all_instances_report.md
+```
+
+For the exact final thesis archive summary, use:
+
+```bash
+.venv/bin/python scripts/run_experiment.py --algorithm multistart --scope all
+```
+
+For an additional fresh direct all-instance audit before printing the archive,
+use:
+
+```bash
+.venv/bin/python scripts/run_experiment.py --algorithm multistart --scope all --fresh-audit
 ```
 
 ## Validate Existing Input/Output Pairs
@@ -188,6 +231,11 @@ First make sure the final verified archive exists:
 ```bash
 .venv/bin/python scripts/run_experiment.py --algorithm multistart --scope all
 ```
+
+This command prints the canonical final no-regression archive table used in the
+thesis, which reports total validated cost `10000.48` and `126` vehicles. To
+rerun the direct all-instance pipeline as an additional audit before printing
+the archive, add `--fresh-audit`.
 
 Then regenerate the result graphs based on the final validated archive:
 
@@ -252,6 +300,7 @@ The compact final thesis result table is:
 | Headline | Small | 162.44 | 2 |
 | Headline | Medium | 371.35 | 5 |
 | Headline | Large | 1163.35 | 15 |
+| Headline total | Small + Medium + Large | 1697.15 | 22 |
 | Full Senior benchmark | 12 instances total | 10000.48 | 126 |
 
 The detailed table below is the final archive used for the thesis. A fresh multi-start
@@ -397,3 +446,27 @@ Artifacts:
   the raw senior datasets.
 - The LaTeX thesis files and documentation drafts are intentionally not included
   in this code repository.
+
+## Tests and Reproducibility Checks
+
+Run the complete lightweight test suite with:
+
+```bash
+.venv/bin/python -m pytest
+```
+
+The tests check official-rule helper functions, objective reconciliation,
+command plumbing, output-directory creation, and the canonical final result
+table. The GitHub Actions result check also verifies imports, runs the tests,
+executes a Small-instance smoke run, prints the final archive table, and fails if
+generated output, cache, or log files are accidentally tracked.
+
+## Troubleshooting
+
+| Problem | Likely cause | Fix |
+|---|---|---|
+| `No module named pytest` | Dependencies were not installed from the current `requirements.txt`. | Run `python -m pip install -r requirements.txt`. |
+| `java: command not found` | Java is not installed or not on `PATH`. | Install a Java runtime and check with `java -version`. |
+| Solver output is feasible but not exactly the archive cost | Multi-start search is heuristic and may find a different feasible candidate. | Use `python scripts/run_experiment.py --algorithm multistart --scope all` for the canonical thesis archive table. |
+| Generated files appear in `git status` | A local ignore rule is missing or the file is outside ignored output folders. | Keep generated runs under `outputs/minoa/`, `data/processed/minoa/`, or `results/lower_bounds/`. |
+| A raw input file cannot be parsed | One downloaded benchmark file may need a processed working copy. | Use the pipeline commands; they write normalized working files under `data/processed/minoa/` without changing raw inputs. |

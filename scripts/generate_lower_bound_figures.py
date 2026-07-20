@@ -20,6 +20,17 @@ GRAY = "#6f7782"
 RED = "#b04a4a"
 
 
+plt.rcParams.update(
+    {
+        "axes.titlesize": 13,
+        "axes.labelsize": 11,
+        "xtick.labelsize": 10,
+        "ytick.labelsize": 10,
+        "legend.fontsize": 10,
+    }
+)
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser()
     parser.add_argument("--csv", type=Path, default=Path("results/lower_bounds/all_instances_lower_bounds.csv"))
@@ -100,7 +111,7 @@ def plot_headline_bounds(rows: list[dict[str, object]], path: Path) -> None:
     labels = [str(row["instance"]) for row in data]
     x = np.arange(len(data))
     width = 0.25
-    fig, ax = plt.subplots(figsize=(8.0, 4.7))
+    fig, ax = plt.subplots(figsize=(9.2, 5.2))
     series = [
         ("Validated UB", [num(row, "validated_upper_bound") for row in data], BLUE, -width),
         ("Global LB", [num(row, "global_cost_lb") for row in data], GREEN, 0.0),
@@ -108,7 +119,9 @@ def plot_headline_bounds(rows: list[dict[str, object]], path: Path) -> None:
     ]
     for name, values, color, offset in series:
         bars = ax.bar(x + offset, values, width, label=name, color=color, edgecolor="black", linewidth=0.5)
-        label_bars(ax, bars, fmt="{:.0f}", dy=3)
+        label_bars(ax, bars, fmt="{:.0f}", dy=8, preserve_ylim=True)
+    max_value = max(value for _, values, _, _ in series for value in values if not np.isnan(value))
+    ax.set_ylim(0, max_value * 1.16)
     ax.set_ylabel("Cost units")
     ax.set_xticks(x, labels)
     ax.set_title("Upper Bounds and Lower Bounds on Headline Instances")
@@ -122,7 +135,7 @@ def plot_global_gaps(rows: list[dict[str, object]], path: Path) -> None:
     labels = [str(row["instance"]) for row in data]
     values = [num(row, "global_gap_percent") for row in data]
     colors = [GREEN if num(row, "global_cost_lb") > 0 else GRAY for row in data]
-    fig, ax = plt.subplots(figsize=(8.2, 6.2))
+    fig, ax = plt.subplots(figsize=(9.2, 6.8))
     y = np.arange(len(data))
     bars = ax.barh(y, values, color=colors, edgecolor="black", linewidth=0.4)
     ax.set_yticks(y, labels)
@@ -135,24 +148,42 @@ def plot_global_gaps(rows: list[dict[str, object]], path: Path) -> None:
 
 def plot_gap_comparison(rows: list[dict[str, object]], path: Path) -> None:
     data = sorted(rows, key=lambda row: str(row["instance"]))
-    labels = [str(row["instance"]) for row in data]
+    display = {
+        "1line 6timeWindow": "1line 6TW",
+        "2lines 6 timeWindows": "2lines 6TW",
+        "3linesTriangle": "3lines tri.",
+        "Toy Example": "Toy",
+    }
+    labels = [display.get(str(row["instance"]), str(row["instance"])) for row in data]
     y = np.arange(len(data))
-    fig, ax = plt.subplots(figsize=(8.4, 6.4))
-    ax.scatter([num(row, "global_gap_percent") for row in data], y + 0.13, s=45, color=GREEN, label="Global gap")
-    ax.scatter([num(row, "selected_tt_gap_percent") for row in data], y - 0.13, s=45, color=ORANGE, label="Selected-TT diagnostic gap")
+    global_gap = [num(row, "global_gap_percent") for row in data]
+    selected_gap = [num(row, "selected_tt_gap_percent") for row in data]
+    dark = "#111827"
+    fig, ax = plt.subplots(figsize=(10.2, 7.3))
+    ax.scatter(global_gap, y + 0.18, s=110, color=GREEN, edgecolor=dark, linewidth=0.45, label="Global gap", zorder=3)
+    ax.scatter(selected_gap, y - 0.18, s=110, color=ORANGE, edgecolor=dark, linewidth=0.45, label="Selected-TT diagnostic gap", zorder=3)
     for row_idx, row in enumerate(data):
+        g = num(row, "global_gap_percent")
+        s = num(row, "selected_tt_gap_percent")
         ax.plot(
-            [num(row, "global_gap_percent"), num(row, "selected_tt_gap_percent")],
+            [g, s],
             [row_idx, row_idx],
             color="#c8ccd2",
-            linewidth=1,
+            linewidth=1.5,
             zorder=0,
         )
+        ax.text(min(g + 1.5, 102.5), row_idx + 0.18, f"{g:.1f}", va="center", ha="left", fontsize=13, color=dark, weight="bold")
+        ax.text(min(s + 1.5, 102.5), row_idx - 0.18, f"{s:.1f}", va="center", ha="left", fontsize=13, color=dark, weight="bold")
     ax.set_yticks(y, labels)
-    ax.set_xlabel("Gap to validated UB (%)")
-    ax.set_title("Global and Selected-Timetable Gaps")
-    ax.legend(loc="upper center", bbox_to_anchor=(0.5, -0.10), ncol=2, frameon=False)
-    ax.grid(axis="x", alpha=0.25)
+    ax.set_xlim(-1, 108)
+    ax.set_xlabel("Gap to validated upper bound (%)", labelpad=9, fontsize=15, color=dark)
+    ax.set_title("Global and Selected-Timetable Gaps", pad=16, weight="bold", fontsize=18, color=dark)
+    ax.legend(loc="upper center", bbox_to_anchor=(0.5, -0.09), ncol=2, frameon=False, fontsize=13)
+    ax.grid(axis="x", alpha=0.28)
+    ax.tick_params(axis="both", labelsize=14, colors=dark)
+    for spine in ax.spines.values():
+        spine.set_color(dark)
+        spine.set_linewidth(1.1)
     save(fig, path)
 
 
@@ -161,7 +192,7 @@ def plot_vehicle_bounds(rows: list[dict[str, object]], path: Path) -> None:
     labels = [str(row["instance"]) for row in data]
     x = np.arange(len(data))
     width = 0.26
-    fig, ax = plt.subplots(figsize=(10.5, 5.2))
+    fig, ax = plt.subplots(figsize=(11.6, 5.8))
     series = [
         ("Used vehicles", [num(row, "used_vehicles") for row in data], BLUE, -width),
         ("Global vehicle LB", [num(row, "global_vehicle_lb") for row in data], GREEN, 0.0),
@@ -183,7 +214,7 @@ def plot_runtime(rows: list[dict[str, object]], path: Path) -> None:
     labels = [str(row["instance"]) for row in data]
     values = [num(row, "global_lb_runtime_seconds") for row in data]
     colors = [GREEN if str(row["global_lb_status"]) == "optimal" else GRAY for row in data]
-    fig, ax = plt.subplots(figsize=(8.4, 6.2))
+    fig, ax = plt.subplots(figsize=(9.4, 6.8))
     y = np.arange(len(data))
     bars = ax.barh(y, values, color=colors, edgecolor="black", linewidth=0.4)
     ax.set_yticks(y, labels)
@@ -195,18 +226,29 @@ def plot_runtime(rows: list[dict[str, object]], path: Path) -> None:
 
 
 def plot_gap_vs_size(rows: list[dict[str, object]], path: Path) -> None:
-    fig, ax = plt.subplots(figsize=(8.0, 5.0))
+    fig, ax = plt.subplots(figsize=(10.4, 6.4))
+    offsets = {
+        "8lines": (-24, -13),
+        "5lines": (-32, 7),
+        "3linesTriangle": (-30, -14),
+        "3lines": (-22, 8),
+        "Large": (7, -13),
+        "2lines 6 timeWindows": (7, -13),
+    }
     for row in rows:
         x = num(row, "candidate_trips")
         y = num(row, "global_gap_percent")
         color = GREEN if num(row, "global_cost_lb") > 0 else RED
         ax.scatter(x, y, s=55, color=color, edgecolor="black", linewidth=0.5)
-        ax.annotate(str(row["instance"]).strip(), (x, y), xytext=(4, 4), textcoords="offset points", fontsize=7)
+        label = str(row["instance"]).strip()
+        dx, dy = offsets.get(label, (5, 5))
+        ax.annotate(label, (x, y), xytext=(dx, dy), textcoords="offset points", fontsize=9)
     ax.set_xscale("log")
     ax.set_xlabel("Candidate trips (log scale)")
     ax.set_ylabel("Global gap to validated UB (%)")
     ax.set_title("Model Size and Certified Global Gap")
     ax.grid(alpha=0.25, which="both")
+    ax.set_ylim(0, 108)
     save(fig, path)
 
 
@@ -218,9 +260,10 @@ def num(row: dict[str, object], key: str) -> float:
         return np.nan
 
 
-def label_bars(ax: plt.Axes, bars, *, fmt: str, dy: float) -> None:
+def label_bars(ax: plt.Axes, bars, *, fmt: str, dy: float, preserve_ylim: bool = False) -> None:
     top = max((bar.get_height() for bar in bars), default=0)
-    ax.set_ylim(top=top * 1.18 + 1)
+    if not preserve_ylim:
+        ax.set_ylim(top=top * 1.18 + 1)
     for bar in bars:
         value = bar.get_height()
         if np.isnan(value):
@@ -231,7 +274,7 @@ def label_bars(ax: plt.Axes, bars, *, fmt: str, dy: float) -> None:
             fmt.format(value),
             ha="center",
             va="bottom",
-            fontsize=7,
+            fontsize=9,
         )
 
 
@@ -242,7 +285,7 @@ def label_bars_h(ax: plt.Axes, bars, *, fmt: str) -> None:
         value = bar.get_width()
         if np.isnan(value):
             continue
-        ax.text(value + max(0.5, right * 0.01), bar.get_y() + bar.get_height() / 2, fmt.format(value), va="center", fontsize=7)
+        ax.text(value + max(0.5, right * 0.01), bar.get_y() + bar.get_height() / 2, fmt.format(value), va="center", fontsize=9)
 
 
 def save(fig: plt.Figure, path: Path) -> None:

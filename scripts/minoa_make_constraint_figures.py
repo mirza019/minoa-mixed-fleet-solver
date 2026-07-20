@@ -240,7 +240,7 @@ def make_archive_result_figures(out_dir: Path) -> None:
 
     def save(fig, path: Path) -> None:
         fig.tight_layout()
-        fig.savefig(path)
+        fig.savefig(path, dpi=300)
         plt.close(fig)
 
     def label_bars(ax, bars, fmt="{:.2f}", dy=0.0) -> None:
@@ -254,7 +254,7 @@ def make_archive_result_figures(out_dir: Path) -> None:
                 fmt.format(value),
                 ha="center",
                 va="bottom",
-                fontsize=8,
+                fontsize=10.8,
             )
 
     # Fig. 01: headline costs.
@@ -282,7 +282,7 @@ def make_archive_result_figures(out_dir: Path) -> None:
     ax.grid(axis="y", color="#e5e7eb")
     ax.spines[["top", "right"]].set_visible(False)
     for idx, row in enumerate(headline):
-        ax.text(idx, row[3] + 0.2, f"{int(row[3])} veh", ha="center", fontsize=8)
+        ax.text(idx, row[3] + 0.2, f"{int(row[3])} veh", ha="center", fontsize=10.8)
     save(fig, out_dir / "fig02_fleet_mix.png")
 
     fig, ax = plt.subplots(figsize=(9.5, 5.2), dpi=180)
@@ -323,6 +323,7 @@ def make_archive_result_figures(out_dir: Path) -> None:
     # Fig. 06 and 31: all-algorithm aggregate comparison.
     totals = _algorithm_totals()
     alg_labels = [str(row["label"]) for row in totals]
+    short_alg_labels = ["Greedy", "Unweighted", "Weighted", "Multi-start"]
     fig, ax = plt.subplots(figsize=(11.2, 5.4), dpi=180)
     ax.bar(np.arange(len(totals)), [float(row["cost"]) for row in totals], color=["#9aa4b2", "#5b8cc0", "#26736d", "#b44949"])
     ax.set_title("All-instance validated cost by implemented algorithm", pad=14)
@@ -332,18 +333,18 @@ def make_archive_result_figures(out_dir: Path) -> None:
     ax.spines[["top", "right"]].set_visible(False)
     save(fig, out_dir / "fig06_algorithm_costs.png")
 
-    fig, axes = plt.subplots(1, 3, figsize=(13.2, 4.6), dpi=180)
+    fig, axes = plt.subplots(1, 3, figsize=(15.0, 5.6), dpi=190)
     metrics = [("Cost", "cost"), ("Vehicles", "vehicles"), ("EV vehicles", "ev")]
     for ax, (title, key) in zip(axes, metrics):
         values = [float(row[key]) for row in totals]
         ax.bar(np.arange(len(totals)), values, color="#4c78a8", width=0.58)
-        ax.set_title(title)
-        ax.set_xticks(np.arange(len(totals)), alg_labels, rotation=35, ha="right", fontsize=7)
+        ax.set_title(title, fontsize=13, weight="bold")
+        ax.set_xticks(np.arange(len(totals)), short_alg_labels, rotation=0, ha="center", fontsize=10.8)
+        ax.tick_params(axis="y", labelsize=10)
         ax.grid(axis="y", color="#e5e7eb")
         ax.spines[["top", "right"]].set_visible(False)
         for idx, value in enumerate(values):
-            ax.text(idx, value + max(values) * 0.02, f"{value:.0f}", ha="center", fontsize=7)
-    fig.suptitle("Aggregate comparison of the implemented algorithms", y=1.03, weight="bold")
+            ax.text(idx, value + max(values) * 0.02, f"{value:.0f}", ha="center", fontsize=10.8)
     save(fig, out_dir / "fig31_all_algorithm_summary.png")
 
     # All-instance result figures.
@@ -361,7 +362,7 @@ def make_archive_result_figures(out_dir: Path) -> None:
     fig, ax = plt.subplots(figsize=(10.8, 5.4), dpi=180)
     ax.scatter([row[2] for row in rows], [row[3] for row in rows], s=55, color="#4c78a8", edgecolor="black", linewidth=0.4)
     for row in rows:
-        ax.annotate(row[0], (row[2], row[3]), xytext=(4, 4), textcoords="offset points", fontsize=7)
+        ax.annotate(row[0], (row[2], row[3]), xytext=(4, 4), textcoords="offset points", fontsize=10.8)
     ax.set_title("Selected trips and used vehicles", pad=14)
     ax.set_xlabel("Selected trips")
     ax.set_ylabel("Used vehicles")
@@ -416,7 +417,7 @@ def make_archive_result_figures(out_dir: Path) -> None:
     for ax, title, values in panels:
         ax.bar(xi, values, color="#4c78a8")
         ax.set_title(title)
-        ax.set_xticks(xi, labels, rotation=45, ha="right", fontsize=7)
+        ax.set_xticks(xi, labels, rotation=45, ha="right", fontsize=10.8)
         ax.grid(axis="y", color="#e5e7eb")
         ax.spines[["top", "right"]].set_visible(False)
     fig.suptitle("All-instance result summary", y=1.01, weight="bold")
@@ -425,7 +426,7 @@ def make_archive_result_figures(out_dir: Path) -> None:
     fig, ax = plt.subplots(figsize=(9.5, 5.4), dpi=180)
     ax.scatter([row[3] for row in headline], [row[1] for row in headline], s=80, color="#4c78a8", edgecolor="black")
     for row in headline:
-        ax.annotate(row[0], (row[3], row[1]), xytext=(6, 4), textcoords="offset points", fontsize=8)
+        ax.annotate(row[0], (row[3], row[1]), xytext=(6, 4), textcoords="offset points", fontsize=10.8)
     ax.set_title("Headline cost-vehicle trade-off", pad=14)
     ax.set_xlabel("Used vehicles")
     ax.set_ylabel("Validator cost")
@@ -436,7 +437,7 @@ def make_archive_result_figures(out_dir: Path) -> None:
     fig, ax = plt.subplots(figsize=(10.2, 5.4), dpi=180)
     ax.scatter([row[4] for row in rows], [row[1] / row[2] for row in rows], s=55, color="#4c78a8", edgecolor="black", linewidth=0.4)
     for row in rows:
-        ax.annotate(row[0], (row[4], row[1] / row[2]), xytext=(4, 4), textcoords="offset points", fontsize=7)
+        ax.annotate(row[0], (row[4], row[1] / row[2]), xytext=(4, 4), textcoords="offset points", fontsize=10.8)
     ax.set_title("EV share and cost efficiency", pad=14)
     ax.set_xlabel("EV share (%)")
     ax.set_ylabel("Cost per selected trip")
@@ -469,7 +470,7 @@ def make_method_decision_layers(path: Path) -> None:
         6.08,
         "The method separates planning decisions into readable layers while passing information forward between them.",
         ha="center",
-        fontsize=9.5,
+        fontsize=10.8,
         color="#5d6a78",
     )
 
@@ -494,10 +495,10 @@ def make_method_decision_layers(path: Path) -> None:
             facecolor=face,
         )
         ax.add_patch(box)
-        ax.text(x + 0.22, y + 0.82, num, ha="center", va="center", color="white", fontsize=9, weight="bold",
+        ax.text(x + 0.22, y + 0.82, num, ha="center", va="center", color="white", fontsize=10.8, weight="bold",
                 bbox=dict(boxstyle="circle,pad=0.28", facecolor=edge, edgecolor=edge))
         ax.text(x + 1.25, y + 0.68, title, ha="center", va="center", fontsize=11, weight="bold", color="#111827")
-        ax.text(x + 1.25, y + 0.32, body, ha="center", va="center", fontsize=8.5, color="#4b5563")
+        ax.text(x + 1.25, y + 0.32, body, ha="center", va="center", fontsize=10.8, color="#4b5563")
 
     arrows = [
         ((2.82, 5.18), (3.30, 5.18)),
@@ -512,18 +513,18 @@ def make_method_decision_layers(path: Path) -> None:
         ax.add_patch(FancyArrowPatch(start, end, arrowstyle="-|>", mutation_scale=13, linewidth=1.4, color="#374151"))
 
     ax.plot([1.6, 11.4], [1.35, 1.35], color="#d0d7de", linewidth=1.0)
-    ax.text(6.5, 1.02, "Multi-start search repeats layers 1--7 with different timetable tie-breaking choices.", ha="center", fontsize=9.5)
+    ax.text(6.5, 1.02, "Multi-start search repeats layers 1--7 with different timetable tie-breaking choices.", ha="center", fontsize=10.8)
     ax.text(
         6.5,
         0.62,
         r"The selected candidate is $h^*=\arg\min_{h\in H_{int}} C^{int,h}$; external validation audits the final output.",
         ha="center",
-        fontsize=10,
+        fontsize=10.8,
         color="#1f2937",
     )
 
     fig.tight_layout()
-    fig.savefig(path)
+    fig.savefig(path, dpi=300)
     plt.close(fig)
 
 
@@ -544,10 +545,10 @@ def make_constraint_matrix(path: Path) -> None:
     for r in range(matrix.shape[0]):
         for c in range(matrix.shape[1]):
             label = "" if matrix[r, c] == 0 else ("I" if matrix[r, c] == 1 else "V")
-            ax.text(c, r, label, ha="center", va="center", fontsize=9, weight="bold")
+            ax.text(c, r, label, ha="center", va="center", fontsize=10.8, weight="bold")
 
     for idx, (_, group) in enumerate(RULES):
-        ax.text(len(LAYERS) - 0.05, idx, group, va="center", ha="left", fontsize=8, color="#495057")
+        ax.text(len(LAYERS) - 0.05, idx, group, va="center", ha="left", fontsize=10.8, color="#495057")
 
     ax.set_xlim(-0.5, len(LAYERS) + 1.65)
     ax.spines[:].set_visible(False)
@@ -557,11 +558,11 @@ def make_constraint_matrix(path: Path) -> None:
         0.035,
         "I = internally constructed or checked, V = independently checked or reported after output generation",
         ha="center",
-        fontsize=9,
+        fontsize=10.8,
         color="#343a40",
     )
     fig.tight_layout(rect=(0, 0.12, 1, 1))
-    fig.savefig(path)
+    fig.savefig(path, dpi=300)
     plt.close(fig)
 
 
@@ -579,7 +580,7 @@ def make_path_cover_workflow(path: Path) -> None:
         7.72,
         "The upper panel shows the solver layers. The lower panel shows how compatible trip arcs become vehicle blocks.",
         ha="center",
-        fontsize=10,
+        fontsize=10.8,
         color="#5d6a78",
     )
 
@@ -606,7 +607,7 @@ def make_path_cover_workflow(path: Path) -> None:
 
     ax.plot([0.8, 12.7], [4.05, 4.05], color="#d0d7de", linewidth=1.0)
     ax.text(0.85, 3.72, "Path-cover example", fontsize=13, weight="bold", color="#111827")
-    ax.text(0.85, 3.45, "Selected arcs create two disjoint paths. Each path is one vehicle block.", fontsize=9, color="#5d6a78")
+    ax.text(0.85, 3.45, "Selected arcs create two disjoint paths. Each path is one vehicle block.", fontsize=10.8, color="#5d6a78")
 
     trips = [
         (1.15, 2.35, "Trip 1\n08:00-08:30"),
@@ -639,146 +640,192 @@ def make_path_cover_workflow(path: Path) -> None:
         "Path 1: Trip 1 -> Trip 2 -> Trip 3 = vehicle block 1     |     Path 2: Trip 4 -> Trip 5 = vehicle block 2",
         ha="center",
         va="center",
-        fontsize=9,
+        fontsize=10.8,
         color="#1f2937",
     )
 
     fig.tight_layout()
-    fig.savefig(path)
+    fig.savefig(path, dpi=300)
     plt.close(fig)
 
 
 def make_ev_workflow(path: Path) -> None:
     import matplotlib.pyplot as plt
+    from matplotlib.patches import Circle, FancyBboxPatch
 
-    fig, ax = plt.subplots(figsize=(13.5, 7.3), dpi=180)
-    ax.set_xlim(0, 13.5)
-    ax.set_ylim(0, 7.3)
+    def draw_ev_box(ax, x, y, w, h, num, title, body, badge_color="#2563eb") -> None:
+        box = FancyBboxPatch(
+            (x, y),
+            w,
+            h,
+            boxstyle="round,pad=0.04,rounding_size=0.14",
+            linewidth=1.35,
+            edgecolor="#1f2937",
+            facecolor="#ffffff",
+        )
+        ax.add_patch(box)
+        badge = Circle(
+            (x + 0.50, y + h + 0.04),
+            0.29,
+            facecolor=badge_color,
+            edgecolor="white",
+            linewidth=1.1,
+        )
+        ax.add_patch(badge)
+        ax.text(x + 0.50, y + h + 0.04, str(num), ha="center", va="center", color="white", weight="bold", fontsize=12.8)
+        ax.text(x + w / 2, y + h * 0.65, title, ha="center", va="center", fontsize=13.2, weight="bold", color="#111827")
+        ax.text(x + w / 2, y + h * 0.30, body, ha="center", va="center", fontsize=12.0, color="#374151", linespacing=1.05)
+
+    fig, ax = plt.subplots(figsize=(18.5, 9.2), dpi=220)
+    ax.set_xlim(0, 18.5)
+    ax.set_ylim(0, 9.2)
     ax.axis("off")
-    ax.text(6.75, 6.85, "EV Feasibility and Charging-Capacity Workflow", ha="center", fontsize=18, weight="bold")
+    ax.text(9.25, 8.66, "EV Feasibility and Charging-Capacity Workflow", ha="center", fontsize=23.0, weight="bold")
     ax.text(
-        6.75,
-        6.52,
+        9.25,
+        8.18,
         "This local workflow tests whether a constructed vehicle block can be operated by an electric bus.",
         ha="center",
-        fontsize=10,
-        color="#5d6a78",
+        fontsize=14.0,
+        color="#4b5563",
     )
 
     top = [
-        (0.55, 5.10, "1", "Candidate block", "ordered trips,\ndeadheads, waits"),
-        (3.50, 5.10, "2", "Energy simulation", "subtract trip and\ndeadhead consumption"),
-        (6.45, 5.10, "3", "Break-window search", "find idle time at\ncharging-capable nodes"),
-        (9.40, 5.10, "4", "Insert charging", "only if time and\nnode allow it"),
+        (0.75, 6.05, "1", "Candidate block", "trips, deadheads,\nand waits"),
+        (4.95, 6.05, "2", "Energy simulation", "subtract driving\nconsumption"),
+        (9.15, 6.05, "3", "Break-window search", "find idle time at\ncharging nodes"),
+        (13.35, 6.05, "4", "Insert charging", "only if time and\nnode allow it"),
     ]
     bottom = [
-        (1.90, 3.12, "5", "Capacity check", "reserve parking and\ncharging capacity"),
-        (5.35, 3.12, "6", "EV accepted", "autonomy non-negative\nand capacity valid"),
-        (8.80, 3.12, "7", "ICE fallback", "if EV infeasible,\nkeep conventional block"),
+        (2.70, 3.55, "5", "Capacity check", "reserve parking and\ncharging capacity"),
+        (7.40, 3.55, "6", "EV accepted", "autonomy and\ncapacity valid"),
+        (12.10, 3.55, "7", "ICE fallback", "if EV infeasible,\nkeep ICE block"),
     ]
     for item in top + bottom:
         color = "#f28e2b" if item[2] == "3" else ("#2a9d8f" if item[2] in {"4", "5", "6"} else ("#e15759" if item[2] == "7" else "#2563eb"))
-        _draw_box(ax, item[0], item[1], 2.65, 0.95, item[2], item[3], item[4], badge_color=color)
+        draw_ev_box(ax, item[0], item[1], 3.45, 1.24, item[2], item[3], item[4], badge_color=color)
 
     for start, end in [
-        ((3.20, 5.57), (3.47, 5.57)),
-        ((6.15, 5.57), (6.42, 5.57)),
-        ((9.10, 5.57), (9.37, 5.57)),
-        ((10.72, 5.10), (10.72, 4.35)),
-        ((10.72, 4.35), (3.23, 4.35)),
-        ((3.23, 4.35), (3.23, 4.07)),
-        ((4.55, 3.59), (5.32, 3.59)),
-        ((8.00, 3.59), (8.77, 3.59)),
+        ((4.28, 6.67), (4.88, 6.67)),
+        ((8.48, 6.67), (9.08, 6.67)),
+        ((12.68, 6.67), (13.28, 6.67)),
+        ((15.08, 6.05), (15.08, 5.15)),
+        ((15.08, 5.15), (4.43, 5.15)),
+        ((4.43, 5.15), (4.43, 4.87)),
+        ((6.23, 4.17), (7.32, 4.17)),
+        ((10.93, 4.17), (12.02, 4.17)),
     ]:
         _arrow(ax, start, end)
 
-    ax.text(4.95, 3.86, "feasible", fontsize=8, color="#2a9d8f", ha="center")
-    ax.text(8.40, 3.86, "not feasible", fontsize=8, color="#e15759", ha="center")
+    ax.text(6.85, 4.55, "feasible", fontsize=13.0, color="#2a9d8f", ha="center", weight="bold")
+    ax.text(11.52, 4.55, "not feasible", fontsize=13.0, color="#e15759", ha="center", weight="bold")
 
     _draw_formula_panel(
         ax,
-        (2.25, 0.65),
-        9.0,
-        1.25,
+        (3.15, 0.72),
+        12.20,
+        1.58,
         "Feasibility logic",
-        r"$b_{a+1}=\min\{B,\; b_a-q_a+\rho_s c_a\},\quad b_a\geq 0$",
+        "Battery update and feasibility check",
         "Charging is accepted only when node parking and charging capacities are not exceeded.",
     )
 
-    fig.tight_layout()
-    fig.savefig(path)
+    fig.tight_layout(pad=1.15)
+    fig.savefig(path, bbox_inches="tight", pad_inches=0.12, dpi=320)
+    fig.savefig(path.with_suffix(".pdf"), bbox_inches="tight", pad_inches=0.12)
     plt.close(fig)
 
 
 def make_final_solver_workflow(path: Path) -> None:
     import matplotlib.pyplot as plt
 
-    fig, ax = plt.subplots(figsize=(13.6, 7.6), dpi=180)
-    ax.set_xlim(0, 13.6)
-    ax.set_ylim(0, 7.6)
+    fig, ax = plt.subplots(figsize=(17.4, 9.3), dpi=220)
+    ax.set_xlim(0, 17.4)
+    ax.set_ylim(0, 9.3)
     ax.axis("off")
-    ax.text(6.8, 7.20, "Final Multi-Start Path-Cover Matheuristic", ha="center", fontsize=18, weight="bold")
+    ax.text(8.70, 8.82, "Final Multi-Start Path-Cover Matheuristic", ha="center", fontsize=24.0, weight="bold")
     ax.text(
-        6.8,
-        6.84,
-        "Each start is a complete candidate schedule. The best candidate is selected by validated total cost.",
+        8.70,
+        8.36,
+        "Each start is a complete candidate schedule; the best retained output has the lowest audited total cost.",
         ha="center",
-        fontsize=9.6,
+        fontsize=14.2,
         color="#5d6a78",
     )
 
     steps = [
-        (0.35, 5.35, "1", "Start h", "choose timetable\nvariant weights", "#2563eb"),
-        (2.85, 5.35, "2", "Timetable", "shortest paths in\nheadway graphs", "#2a9d8f"),
-        (5.35, 5.35, "3", "Compatibility graph", "arcs = feasible\ntrip continuations", "#c87b24"),
-        (7.85, 5.35, "4", "Weighted matching", "path cover with\nconnection scores", "#6c55a3"),
-        (10.35, 5.35, "5", "Vehicle blocks", "reconstruct paths\nand depot movements", "#1f2937"),
-        (2.25, 3.35, "6", "Fleet assignment", "EV first when\nbattery feasible", "#26736d"),
-        (5.35, 3.35, "7", "Charging insertion", "use break windows\nand charger capacity", "#26736d"),
-        (8.45, 3.35, "8", "Candidate cost", "fixed, break,\npull, CO2", "#c87b24"),
-        (5.35, 1.35, "9", "Best schedule", r"$h^*=\arg\min C^{int,h}$\namong complete candidates", "#b44949"),
+        (0.70, 6.48, "1", "Start h", "variant\nweights", "#2563eb"),
+        (3.85, 6.48, "2", "Timetable", "headway\npath", "#2a9d8f"),
+        (7.00, 6.48, "3", "Graph", "feasible\narcs", "#c87b24"),
+        (10.15, 6.48, "4", "Matching", "weighted\npath cover", "#6c55a3"),
+        (13.30, 6.48, "5", "Blocks", "paths and\ndepot moves", "#1f2937"),
+        (2.85, 3.92, "6", "Fleet", "EV/ICE\nchoice", "#26736d"),
+        (6.85, 3.92, "7", "Charging", "breaks and\ncapacity", "#26736d"),
+        (10.85, 3.92, "8", "Cost", "fixed, break,\npull, CO$_2$", "#c87b24"),
+        (6.85, 1.62, "9", "Best output", r"$\min\, C^{int,h}$", "#b44949"),
     ]
     for x, y, num, title, body, color in steps:
-        _draw_box(ax, x, y, 2.25, 0.95, num, title, body, badge_color=color)
+        _draw_box(
+            ax,
+            x,
+            y,
+            2.85,
+            1.20,
+            num,
+            title,
+            body,
+            badge_color=color,
+            title_fs=14.2,
+            body_fs=13.0,
+            badge_fs=12.4,
+            badge_radius=0.30,
+        )
 
     arrows = [
-        ((2.60, 5.82), (2.82, 5.82), "selected trips"),
-        ((5.10, 5.82), (5.32, 5.82), "nodes/arcs"),
-        ((7.60, 5.82), (7.82, 5.82), "edge weights"),
-        ((10.10, 5.82), (10.32, 5.82), "paths"),
-        ((11.48, 5.35), (11.48, 4.60), None),
-        ((11.48, 4.60), (3.38, 4.60), None),
-        ((3.38, 4.60), (3.38, 4.30), None),
-        ((4.50, 3.82), (5.32, 3.82), "EV blocks"),
-        ((7.60, 3.82), (8.42, 3.82), "complete blocks"),
-        ((9.58, 3.35), (9.58, 2.55), None),
-        ((9.58, 2.55), (6.48, 2.55), None),
-        ((6.48, 2.55), (6.48, 2.30), None),
+        ((3.56, 7.08), (3.82, 7.08), None),
+        ((6.71, 7.08), (6.97, 7.08), None),
+        ((9.86, 7.08), (10.12, 7.08), None),
+        ((13.01, 7.08), (13.27, 7.08), None),
+        ((14.72, 6.48), (14.72, 5.46), None),
+        ((14.72, 5.46), (4.28, 5.46), None),
+        ((4.28, 5.46), (4.28, 5.14), None),
+        ((5.72, 4.52), (6.82, 4.52), None),
+        ((9.72, 4.52), (10.82, 4.52), None),
+        ((12.27, 3.92), (12.27, 2.96), None),
+        ((12.27, 2.96), (8.28, 2.96), None),
+        ((8.28, 2.96), (8.28, 2.67), None),
     ]
     for start, end, label in arrows:
         _arrow(ax, start, end, label=label)
 
     _draw_formula_panel(
         ax,
-        (0.55, 0.35),
-        4.25,
-        1.05,
+        (0.92, 0.20),
+        5.45,
+        1.35,
         "Multi-start set",
         r"$H=\{0,1,\ldots,H_{max}\}$",
-        "Each h changes timetable tie-breaking and therefore graph quality.",
+        "Each h changes timetable tie-breaking\nand therefore graph quality.",
+        title_fs=13.4,
+        formula_fs=12.5,
+        body_fs=11.8,
     )
     _draw_formula_panel(
         ax,
-        (8.30, 0.35),
-        4.25,
-        1.05,
+        (10.20, 0.20),
+        5.75,
+        1.35,
         "Selection rule",
-        r"$h^*=\arg\min_{h\in H_{int}} C^{int,h}$",
-        "The final selected output is audited externally after construction.",
+        r"$h^*=\operatorname{argmin}_{h\in H_{int}} C^{int,h}$",
+        "Final output is audited\nafter construction.",
+        title_fs=13.4,
+        formula_fs=12.5,
+        body_fs=11.8,
     )
 
-    fig.tight_layout()
-    fig.savefig(path)
+    fig.tight_layout(pad=1.15)
+    fig.savefig(path, bbox_inches="tight", pad_inches=0.12, dpi=320)
+    fig.savefig(path.with_suffix(".pdf"), bbox_inches="tight", pad_inches=0.12)
     plt.close(fig)
 
 
@@ -786,49 +833,98 @@ def make_algorithm_gain_panel(path: Path) -> None:
     import matplotlib.pyplot as plt
     import numpy as np
 
-    rows = _algorithm_totals()
-    labels = [str(row["label"]) for row in rows]
-    costs = np.array([float(row["cost"]) for row in rows])
-    best = float(costs.min())
-    gaps = costs - best
-    colors = ["#9aa4b2", "#5b8cc0", "#26736d", "#b44949"]
+    final_rows = _result_rows()
+    final_by_instance = {row[0]: {"cost": row[1], "vehicles": row[3]} for row in final_rows}
+    baseline = [
+        ("Small", 162.44, 2),
+        ("Medium", 371.35, 5),
+        ("Large", 1163.35, 15),
+        ("Toy", 488.44, 6),
+        ("1line", 323.63, 4),
+        ("1line 6TW", 530.77, 7),
+        ("2lines", 910.15, 12),
+        ("2lines 6TW", 626.24, 8),
+        ("3lines", 999.99, 12),
+        ("3lines tri.", 941.41, 12),
+        ("5lines", 1669.01, 20),
+        ("8lines", 2617.76, 33),
+    ]
+    labels = [row[0] for row in baseline]
+    cost_gain = np.array(
+        [row[1] - final_by_instance.get(row[0], {"cost": row[1]})["cost"] for row in baseline],
+        dtype=float,
+    )
+    vehicle_gain = np.array(
+        [row[2] - final_by_instance.get(row[0], {"vehicles": row[2]})["vehicles"] for row in baseline],
+        dtype=float,
+    )
     y = np.arange(len(labels))
 
-    fig, ax = plt.subplots(figsize=(12.6, 5.6), dpi=180)
-    bars = ax.barh(y, gaps, color=colors, height=0.58)
-    ax.set_title("All-Instance Cost Gap of the Implemented Algorithms", pad=14, weight="bold")
-    ax.set_xlabel("Validated objective value above the best tested configuration")
-    ax.set_yticks(y, labels)
-    ax.invert_yaxis()
-    ax.grid(axis="x", color="#e5e7eb")
-    ax.spines[["top", "right", "left"]].set_visible(False)
-    ax.tick_params(axis="y", length=0)
-    ax.set_xlim(0, max(gaps) * 1.32 if max(gaps) > 0 else 1)
+    fig, (ax_cost, ax_vehicle) = plt.subplots(
+        1,
+        2,
+        figsize=(13.2, 6.2),
+        dpi=180,
+        gridspec_kw={"width_ratios": [1.5, 1.0], "wspace": 0.18},
+        sharey=True,
+    )
+    fig.suptitle("Baseline Archive vs Final No-Regression Archive", y=0.98, weight="bold")
 
-    for bar, cost, gap in zip(bars, costs, gaps):
-        x = bar.get_width()
-        label = f"best: {cost:.2f}" if gap < 1e-6 else f"+{gap:.2f}  (total {cost:.2f})"
-        ax.text(
-            x + max(gaps) * 0.035,
+    cost_colors = ["#b44949" if value > 0.005 else "#d8dde6" for value in cost_gain]
+    vehicle_colors = ["#26736d" if value > 0.005 else "#d8dde6" for value in vehicle_gain]
+    cost_bars = ax_cost.barh(y, cost_gain, color=cost_colors, height=0.58)
+    vehicle_bars = ax_vehicle.barh(y, vehicle_gain, color=vehicle_colors, height=0.58)
+
+    ax_cost.set_yticks(y, labels)
+    ax_cost.invert_yaxis()
+    ax_cost.set_xlabel("Cost reduction retained by final archive")
+    ax_vehicle.set_xlabel("Vehicle reduction retained by final archive")
+    ax_cost.set_title("Cost reduction", fontsize=10.8, weight="bold")
+    ax_vehicle.set_title("Vehicle reduction", fontsize=10.8, weight="bold")
+
+    for ax in (ax_cost, ax_vehicle):
+        ax.grid(axis="x", color="#e5e7eb")
+        ax.spines[["top", "right", "left"]].set_visible(False)
+        ax.tick_params(axis="y", length=0)
+        ax.axvline(0, color="#6b7280", linewidth=0.8)
+
+    ax_cost.set_xlim(0, max(cost_gain) * 1.25 if max(cost_gain) > 0 else 1)
+    ax_vehicle.set_xlim(0, max(vehicle_gain) + 0.8 if max(vehicle_gain) > 0 else 1)
+
+    for bar, value in zip(cost_bars, cost_gain):
+        label = "kept" if value <= 0.005 else f"{value:.2f}"
+        ax_cost.text(
+            bar.get_width() + ax_cost.get_xlim()[1] * 0.015,
             bar.get_y() + bar.get_height() / 2,
             label,
             va="center",
             ha="left",
-            fontsize=8.2,
+            fontsize=10.8,
             color="#1f2937",
-            weight="bold" if gap < 1e-6 else "normal",
+        )
+
+    for bar, value in zip(vehicle_bars, vehicle_gain):
+        label = "kept" if abs(value) < 1e-6 else f"{int(value)}"
+        ax_vehicle.text(
+            bar.get_width() + ax_vehicle.get_xlim()[1] * 0.025,
+            bar.get_y() + bar.get_height() / 2,
+            label,
+            va="center",
+            ha="left",
+            fontsize=10.8,
+            color="#1f2937",
         )
 
     fig.text(
         0.5,
         0.025,
-        "Values are summed over the twelve Senior instances and use validator-feasible outputs.",
+        "Zero bars mean the baseline archive output was retained. Positive bars show improvements kept in the final archive.",
         ha="center",
-        fontsize=8.8,
+        fontsize=10.8,
         color="#495057",
     )
-    fig.tight_layout(rect=(0, 0.07, 1, 1))
-    fig.savefig(path)
+    fig.tight_layout(rect=(0, 0.07, 1, 0.95))
+    fig.savefig(path, bbox_inches="tight", dpi=300)
     plt.close(fig)
 
 
@@ -849,21 +945,23 @@ def make_sml_improvement_heatmap(path: Path) -> None:
     best = costs[:, [-1]]
     improvement = costs - best
 
-    fig, ax = plt.subplots(figsize=(10.8, 4.8), dpi=180)
+    fig, ax = plt.subplots(figsize=(11.6, 5.2), dpi=190)
     image = ax.imshow(improvement, cmap="YlOrRd", aspect="auto")
-    ax.set_title("Per-Instance Cost Gap to the Final Multi-Start Method")
+    ax.set_title("Per-Instance Cost Gap to the Final Multi-Start Method", fontsize=15, weight="bold")
     ax.set_xticks(range(len(algorithms)), algorithms)
     ax.set_yticks(range(len(instances)), instances)
-    ax.set_xlabel("Algorithm")
-    ax.set_ylabel("Headline instance")
+    ax.set_xlabel("Algorithm", fontsize=11)
+    ax.set_ylabel("Headline instance", fontsize=11)
+    ax.tick_params(axis="both", labelsize=10)
     for r in range(improvement.shape[0]):
         for c in range(improvement.shape[1]):
             value = improvement[r, c]
             text = "best" if abs(value) < 1e-6 else f"+{value:.2f}"
             color = "white" if value > improvement.max() * 0.55 else "#1f2937"
-            ax.text(c, r, text, ha="center", va="center", fontsize=9, weight="bold", color=color)
+            ax.text(c, r, text, ha="center", va="center", fontsize=10.8, weight="bold", color=color)
     cbar = fig.colorbar(image, ax=ax, fraction=0.035, pad=0.02)
-    cbar.set_label("Cost above final method")
+    cbar.set_label("Cost above final method", fontsize=10.8)
+    cbar.ax.tick_params(labelsize=9)
     ax.spines[:].set_visible(False)
     ax.tick_params(length=0)
     fig.text(
@@ -871,11 +969,11 @@ def make_sml_improvement_heatmap(path: Path) -> None:
         0.02,
         "The largest gains come from Small and Medium, where timetable variation reduces one vehicle block.",
         ha="center",
-        fontsize=8.6,
+        fontsize=10.8,
         color="#495057",
     )
     fig.tight_layout(rect=(0, 0.06, 1, 1))
-    fig.savefig(path)
+    fig.savefig(path, dpi=300)
     plt.close(fig)
 
 
@@ -900,69 +998,146 @@ def make_all_instance_tradeoff_dashboard(path: Path) -> None:
     resource = np.column_stack([deadhead_per_trip, break_per_trip, charge_per_trip])
     total_pressure = resource.sum(axis=1)
     order = np.argsort(total_pressure)
+    code_map = {
+        "Small": "S",
+        "Medium": "M",
+        "Large": "LG",
+        "Toy": "T",
+        "1line": "1",
+        "1line 6TW": "1W",
+        "2lines": "2",
+        "2lines 6TW": "2W",
+        "3lines": "3",
+        "3lines tri.": "3T",
+        "5lines": "5",
+        "8lines": "8",
+    }
 
-    fig = plt.figure(figsize=(13.6, 8.6), dpi=180)
-    gs = fig.add_gridspec(2, 2, width_ratios=[1.15, 1.0], height_ratios=[1.0, 1.05], wspace=0.28, hspace=0.42)
+    def add_callout_labels(ax, xs, ys, offsets):
+        for x_value, y_value, label in zip(xs, ys, labels):
+            dx, dy = offsets[label]
+            ax.annotate(
+                code_map[label],
+                (x_value, y_value),
+                xytext=(dx, dy),
+                textcoords="offset points",
+                ha="center",
+                va="center",
+                fontsize=8.7,
+                weight="bold",
+                color="#1f2937",
+                bbox=dict(boxstyle="round,pad=0.18", fc="white", ec="#94a3b8", lw=0.65, alpha=0.96),
+                arrowprops=dict(arrowstyle="-", color="#94a3b8", lw=0.65, shrinkA=2, shrinkB=4),
+                annotation_clip=False,
+                zorder=6,
+            )
+
+    fig = plt.figure(figsize=(12.4, 9.0), dpi=220)
+    gs = fig.add_gridspec(
+        3,
+        2,
+        width_ratios=[1.18, 1.02],
+        height_ratios=[1.0, 0.30, 1.18],
+        wspace=0.46,
+        hspace=0.34,
+    )
     ax1 = fig.add_subplot(gs[0, 0])
     ax2 = fig.add_subplot(gs[0, 1])
-    ax3 = fig.add_subplot(gs[1, :])
+    ax_code = fig.add_subplot(gs[1, :])
+    ax3 = fig.add_subplot(gs[2, :])
 
     scatter = ax1.scatter(
         trips_per_vehicle,
         cost_per_trip,
-        s=70 + ev_share * 2.2,
+        s=110 + ev_share * 2.6,
         c=ev_share,
         cmap="viridis",
-        edgecolor="#1f2937",
-        linewidth=0.5,
+        edgecolor="white",
+        linewidth=0.85,
     )
-    ax1.set_title("Efficiency and electrification")
-    ax1.set_xlabel("Selected trips per vehicle")
-    ax1.set_ylabel("Cost per selected trip")
+    ax1.set_title("Efficiency and electrification", fontsize=14.0, weight="bold")
+    ax1.set_xlabel("Selected trips per vehicle", fontsize=12)
+    ax1.set_ylabel("Cost per selected trip", fontsize=12)
+    ax1.tick_params(labelsize=10.8)
     ax1.grid(color="#e5e7eb", linewidth=0.8)
     ax1.spines[["top", "right"]].set_visible(False)
-    x_mid = 0.5 * (float(trips_per_vehicle.min()) + float(trips_per_vehicle.max()))
-    y_mid = 0.5 * (float(cost_per_trip.min()) + float(cost_per_trip.max()))
-    for idx, (x, y_value, label) in enumerate(zip(trips_per_vehicle, cost_per_trip, labels)):
-        dx = 7 if x <= x_mid else -34
-        dy = -10 if y_value >= y_mid else 8
-        ax1.annotate(
-            label,
-            (x, y_value),
-            xytext=(dx, dy),
-            textcoords="offset points",
-            fontsize=6.6,
-            color="#334155",
-            ha="left" if dx > 0 else "right",
-            arrowprops=dict(arrowstyle="-", color="#cbd5e1", lw=0.45),
-            annotation_clip=False,
-        )
+    ax1.set_xlim(float(trips_per_vehicle.min()) - 1.0, float(trips_per_vehicle.max()) + 1.0)
+    ax1.set_ylim(float(cost_per_trip.min()) - 0.18, float(cost_per_trip.max()) + 0.42)
+    ax1_offsets = {
+        "Small": (16, -18),
+        "Medium": (14, -18),
+        "Large": (18, 16),
+        "Toy": (-20, -18),
+        "1line": (-18, -18),
+        "1line 6TW": (-20, 16),
+        "2lines": (-28, 24),
+        "2lines 6TW": (-18, -16),
+        "3lines": (18, -16),
+        "3lines tri.": (19, 12),
+        "5lines": (18, 14),
+        "8lines": (-20, -16),
+    }
+    add_callout_labels(ax1, trips_per_vehicle, cost_per_trip, ax1_offsets)
     cbar = fig.colorbar(scatter, ax=ax1, fraction=0.045, pad=0.025)
-    cbar.set_label("EV share (%)", fontsize=8)
-    cbar.ax.tick_params(labelsize=7)
+    cbar.set_label("EV share (%)", fontsize=11.0)
+    cbar.ax.tick_params(labelsize=9.8)
 
-    ax2.scatter(deadhead_per_trip, charge_per_trip, s=70 + vehicles * 4, color="#2f6db3", alpha=0.78, edgecolor="#1f2937", linewidth=0.5)
-    ax2.set_title("Repositioning and charging pressure")
-    ax2.set_xlabel("Deadhead minutes per trip")
-    ax2.set_ylabel("Charging minutes per trip")
+    ax2.scatter(
+        deadhead_per_trip,
+        charge_per_trip,
+        s=105 + vehicles * 4.2,
+        color="#2f6db3",
+        alpha=0.82,
+        edgecolor="white",
+        linewidth=0.85,
+    )
+    ax2.set_title("Repositioning and charging pressure", fontsize=14.0, weight="bold")
+    ax2.set_xlabel("Deadhead minutes per trip", fontsize=12)
+    ax2.set_ylabel("Charging minutes per trip", fontsize=12)
+    ax2.tick_params(labelsize=10.8)
     ax2.grid(color="#e5e7eb", linewidth=0.8)
     ax2.spines[["top", "right"]].set_visible(False)
-    x_mid = 0.5 * (float(deadhead_per_trip.min()) + float(deadhead_per_trip.max()))
-    y_mid = 0.5 * (float(charge_per_trip.min()) + float(charge_per_trip.max()))
-    for idx, (x, y_value, label) in enumerate(zip(deadhead_per_trip, charge_per_trip, labels)):
-        dx = 7 if x <= x_mid else -34
-        dy = -10 if y_value >= y_mid else 8
-        ax2.annotate(
-            label,
-            (x, y_value),
-            xytext=(dx, dy),
-            textcoords="offset points",
-            fontsize=6.6,
-            color="#334155",
-            ha="left" if dx > 0 else "right",
-            arrowprops=dict(arrowstyle="-", color="#cbd5e1", lw=0.45),
-            annotation_clip=False,
-        )
+    ax2.set_xlim(float(deadhead_per_trip.min()) - 0.65, float(deadhead_per_trip.max()) + 0.85)
+    ax2.set_ylim(float(charge_per_trip.min()) - 0.14, float(charge_per_trip.max()) + 0.42)
+    ax2_offsets = {
+        "Small": (-16, 16),
+        "Medium": (16, 16),
+        "Large": (18, -14),
+        "Toy": (-16, -17),
+        "1line": (-24, 22),
+        "1line 6TW": (18, -17),
+        "2lines": (18, 16),
+        "2lines 6TW": (-22, -16),
+        "3lines": (-24, -11),
+        "3lines tri.": (18, 16),
+        "5lines": (-22, 16),
+        "8lines": (18, 16),
+    }
+    add_callout_labels(ax2, deadhead_per_trip, charge_per_trip, ax2_offsets)
+
+    ax_code.axis("off")
+    code_line_1 = "   ".join([f"{code_map[k]}={k}" for k in ["Small", "Medium", "Large", "Toy", "1line", "1line 6TW"]])
+    code_line_2 = "   ".join([f"{code_map[k]}={k}" for k in ["2lines", "2lines 6TW", "3lines", "3lines tri.", "5lines", "8lines"]])
+    ax_code.text(
+        0.5,
+        0.67,
+        "Scatter-label code map",
+        ha="center",
+        va="center",
+        fontsize=10.8,
+        weight="bold",
+        color="#1f2937",
+    )
+    ax_code.text(
+        0.5,
+        0.23,
+        f"{code_line_1}\n{code_line_2}",
+        ha="center",
+        va="center",
+        fontsize=10.8,
+        color="#334155",
+        linespacing=1.45,
+    )
 
     resource_sorted = resource[order]
     labels_sorted = [labels[i] for i in order]
@@ -974,29 +1149,31 @@ def make_all_instance_tradeoff_dashboard(path: Path) -> None:
         bars = ax3.barh(y, values, left=left, color=color, label=name)
         for bar, value, base in zip(bars, values, left):
             if value >= 0.55:
-                ax3.text(base + value / 2, bar.get_y() + bar.get_height() / 2, f"{value:.1f}", ha="center", va="center", fontsize=6.7, color="white", weight="bold")
+                ax3.text(base + value / 2, bar.get_y() + bar.get_height() / 2, f"{value:.1f}", ha="center", va="center", fontsize=11.0, color="white", weight="bold")
         left += values
-    ax3.set_title("Operational minutes per selected trip, sorted by total pressure")
-    ax3.set_xlabel("Minutes per selected trip")
+    ax3.set_title("Operational minutes per selected trip, sorted by total pressure", fontsize=14.0, weight="bold")
+    ax3.set_xlabel("Minutes per selected trip", fontsize=12)
     ax3.set_yticks(y, labels_sorted)
     ax3.grid(axis="x", color="#e5e7eb", linewidth=0.8)
     ax3.spines[["top", "right", "left"]].set_visible(False)
-    ax3.tick_params(axis="y", length=0, labelsize=8)
-    ax3.legend(frameon=False, ncol=3, loc="lower right")
+    ax3.tick_params(axis="y", length=0, labelsize=10.8)
+    ax3.tick_params(axis="x", labelsize=10.8)
+    ax3.legend(frameon=False, ncol=3, loc="lower right", fontsize=11.0)
     for idx, total in enumerate(total_pressure[order]):
-        ax3.text(total + 0.25, idx, f"{total:.1f}", va="center", fontsize=7.0, color="#334155")
+        ax3.text(total + 0.25, idx, f"{total:.1f}", va="center", fontsize=11.0, color="#334155")
 
-    fig.suptitle("All-Instance Operational Trade-Off Dashboard", fontsize=16.0, weight="bold", y=0.985)
+    fig.suptitle("All-Instance Operational Trade-Off Summary", fontsize=20.0, weight="bold", y=0.982)
     fig.text(
         0.5,
-        0.018,
+        0.020,
         "Reading guide: good schedules combine high vehicle productivity with manageable repositioning, waiting, and charging pressure.",
         ha="center",
-        fontsize=8.6,
+        fontsize=11.3,
         color="#495057",
     )
-    fig.tight_layout(rect=(0, 0.05, 1, 0.95))
-    fig.savefig(path)
+    fig.tight_layout(rect=(0.03, 0.055, 0.985, 0.95))
+    fig.savefig(path, bbox_inches="tight", pad_inches=0.14, dpi=320)
+    fig.savefig(path.with_suffix(".pdf"), bbox_inches="tight", pad_inches=0.14)
     plt.close(fig)
 
 
@@ -1016,25 +1193,28 @@ def make_resource_pressure(path: Path) -> None:
     for c in range(3):
         norm[:, c] = norm[:, c] / max(norm[:, c].max(), 1e-9)
 
-    fig, ax = plt.subplots(figsize=(10.8, 6.9), dpi=180)
+    fig, ax = plt.subplots(figsize=(12.2, 7.7), dpi=190)
     image = ax.imshow(norm, cmap="YlGnBu", aspect="auto", vmin=0, vmax=1)
-    ax.set_title("Constraint Pressure Indicators Across All Senior Instances", pad=14)
+    ax.set_title("Constraint Pressure Indicators Across All Senior Instances", pad=14, fontsize=16, weight="bold")
     ax.set_xticks(range(len(col_labels)), col_labels)
     ax.set_yticks(range(len(labels)), labels)
+    ax.tick_params(axis="x", labelsize=11)
+    ax.tick_params(axis="y", labelsize=10)
 
     for r, row in enumerate(values):
         for c, value in enumerate(row):
             text = f"{value:.1f}" if c < 3 else f"{value * 100:.0f}%"
             color = "white" if norm[r, c] > 0.62 else "#1f2933"
-            ax.text(c, r, text, ha="center", va="center", fontsize=8, color=color, weight="bold")
+            ax.text(c, r, text, ha="center", va="center", fontsize=10.8, color=color, weight="bold")
 
-    ax.set_xlabel("Indicators derived from validator-accepted schedules")
+    ax.set_xlabel("Indicators derived from validated schedules", fontsize=11)
     cbar = fig.colorbar(image, ax=ax, fraction=0.035, pad=0.02)
-    cbar.set_label("Relative pressure within each column")
+    cbar.set_label("Relative pressure within each column", fontsize=10.8)
+    cbar.ax.tick_params(labelsize=9)
     ax.spines[:].set_visible(False)
     ax.tick_params(axis="both", length=0)
     fig.tight_layout()
-    fig.savefig(path)
+    fig.savefig(path, dpi=300)
     plt.close(fig)
 
 
@@ -1048,14 +1228,15 @@ def make_efficiency_panel(path: Path) -> None:
     ev_share = [row[4] for row in _result_rows()]
     x = np.arange(len(labels))
 
-    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(11.5, 8.2), dpi=180, sharex=True)
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(13.2, 8.8), dpi=190, sharex=True)
     bars = ax1.bar(x, costs_per_trip, color="#26736d", width=0.62)
-    ax1.set_title("All-Instance Efficiency View")
-    ax1.set_ylabel("Cost per selected trip")
+    ax1.set_title("All-Instance Efficiency View", fontsize=16, weight="bold")
+    ax1.set_ylabel("Cost per selected trip", fontsize=11)
+    ax1.tick_params(labelsize=10)
     ax1.grid(axis="y", color="#dde2e6", linewidth=0.8)
     ax1.spines[["top", "right"]].set_visible(False)
     for bar, value in zip(bars, costs_per_trip):
-        ax1.text(bar.get_x() + bar.get_width() / 2, value + 0.08, f"{value:.2f}", ha="center", fontsize=7)
+        ax1.text(bar.get_x() + bar.get_width() / 2, value + 0.08, f"{value:.2f}", ha="center", fontsize=10.8)
 
     scatter = ax2.scatter(
         x,
@@ -1067,17 +1248,20 @@ def make_efficiency_panel(path: Path) -> None:
         linewidth=0.5,
     )
     ax2.plot(x, trips_per_vehicle, color="#adb5bd", linewidth=1.0, zorder=0)
-    ax2.set_ylabel("Trips per used vehicle")
-    ax2.set_xticks(x, labels, rotation=35, ha="right")
+    ax2.set_ylabel("Trips per used vehicle", fontsize=11)
+    ax2.set_xticks(x, labels, rotation=32, ha="right")
+    ax2.tick_params(axis="x", labelsize=10)
+    ax2.tick_params(axis="y", labelsize=10)
     ax2.grid(axis="y", color="#dde2e6", linewidth=0.8)
     ax2.spines[["top", "right"]].set_visible(False)
     for idx, value in enumerate(trips_per_vehicle):
-        ax2.text(idx, value + 0.55, f"{value:.1f}", ha="center", fontsize=7)
+        ax2.text(idx, value + 0.55, f"{value:.1f}", ha="center", fontsize=10.8)
     cbar = fig.colorbar(scatter, ax=ax2, fraction=0.025, pad=0.02)
-    cbar.set_label("EV share (%)")
+    cbar.set_label("EV share (%)", fontsize=10.8)
+    cbar.ax.tick_params(labelsize=9)
 
     fig.tight_layout()
-    fig.savefig(path)
+    fig.savefig(path, dpi=300)
     plt.close(fig)
 
 
@@ -1093,22 +1277,23 @@ def make_cost_audit_panel(path: Path) -> None:
     fixed_share = fixed / total * 100.0
     y = np.arange(len(labels))
 
-    fig, ax = plt.subplots(figsize=(12.8, 7.4), dpi=180)
+    fig, ax = plt.subplots(figsize=(14.2, 8.0), dpi=190)
     ax.barh(y, fixed, color="#536878", label="Fixed vehicle cost")
     ax.barh(y, other, left=fixed, color="#f2b447", label="Remaining validated cost")
 
     ax.set_title("Validated Cost Audit Across All Senior Instances", pad=14, weight="bold")
-    ax.set_xlabel("Validated objective value")
+    ax.set_xlabel("Validated objective value", fontsize=11)
     ax.set_yticks(y, labels)
     ax.invert_yaxis()
     ax.grid(axis="x", color="#dde2e6", linewidth=0.8)
     ax.spines[["top", "right"]].set_visible(False)
     ax.legend(frameon=False, loc="upper right")
     ax.set_xlim(0, max(total) * 1.14)
-    ax.tick_params(axis="y", length=0)
+    ax.tick_params(axis="y", length=0, labelsize=10)
+    ax.tick_params(axis="x", labelsize=10)
 
     for idx, value in enumerate(total):
-        ax.text(value + max(total) * 0.014, idx, f"{value:.0f}", va="center", fontsize=7.6, weight="bold")
+        ax.text(value + max(total) * 0.014, idx, f"{value:.0f}", va="center", fontsize=10.8, weight="bold")
         if fixed[idx] > 120:
             ax.text(
                 fixed[idx] * 0.52,
@@ -1116,7 +1301,7 @@ def make_cost_audit_panel(path: Path) -> None:
                 f"{fixed_share[idx]:.0f}% fixed",
                 ha="center",
                 va="center",
-                fontsize=7.0,
+                fontsize=10.8,
                 color="white",
                 weight="bold",
             )
@@ -1127,7 +1312,7 @@ def make_cost_audit_panel(path: Path) -> None:
                 f"{other[idx]:.1f}",
                 ha="center",
                 va="center",
-                fontsize=6.8,
+                fontsize=10.8,
                 color="#343a40",
             )
 
@@ -1136,11 +1321,11 @@ def make_cost_audit_panel(path: Path) -> None:
         0.01,
         "Number at the bar end = total validated cost. The remaining segment equals total cost minus fixed vehicle cost.",
         ha="center",
-        fontsize=8,
+        fontsize=10.8,
         color="#495057",
     )
     fig.tight_layout(rect=(0, 0.045, 1, 1))
-    fig.savefig(path)
+    fig.savefig(path, dpi=300)
     plt.close(fig)
 
 
@@ -1163,17 +1348,17 @@ def make_vehicle_journey_figure(path: Path) -> None:
     fig, (ax1, ax2) = plt.subplots(
         1,
         2,
-        figsize=(13.2, 7.4),
-        dpi=180,
+        figsize=(14.4, 8.0),
+        dpi=190,
         gridspec_kw={"width_ratios": [1.05, 1.45], "wspace": 0.18},
     )
-    fig.suptitle("All-Instance Operational Profile of the Final Schedules", fontsize=15.5, weight="bold", y=0.98)
+    fig.suptitle("All-Instance Operational Profile of the Final Schedules", fontsize=17, weight="bold", y=0.98)
     fig.text(
         0.5,
         0.935,
         "Each row is one senior instance. The left panel shows the validated fleet mix; the right panel normalizes operational activity minutes by selected trips.",
         ha="center",
-        fontsize=8.8,
+        fontsize=10.8,
         color="#5d6a78",
     )
 
@@ -1182,45 +1367,45 @@ def make_vehicle_journey_figure(path: Path) -> None:
     ax1.barh(y, ice, left=ev, color="#536878", edgecolor="#1f2937", linewidth=0.4, label="ICE vehicles")
     ax1.set_yticks(y, labels)
     ax1.invert_yaxis()
-    ax1.set_xlabel("Used vehicles")
-    ax1.set_title("Validated EV/ICE fleet mix", fontsize=10.5)
+    ax1.set_xlabel("Used vehicles", fontsize=11)
+    ax1.set_title("Validated EV/ICE fleet mix\n(green = EV, gray = ICE)", fontsize=12.4, weight="bold")
     ax1.grid(axis="x", color="#e5e7eb", linewidth=0.8)
     ax1.spines[["top", "right", "left"]].set_visible(False)
-    ax1.tick_params(axis="y", length=0, labelsize=8)
-    ax1.legend(frameon=False, loc="lower right", fontsize=7.8)
+    ax1.tick_params(axis="y", length=0, labelsize=10)
+    ax1.tick_params(axis="x", labelsize=10)
     for idx, (e, i, total) in enumerate(zip(ev, ice, vehicles.astype(int))):
-        ax1.text(total + 0.35, idx, f"{total}", va="center", fontsize=7.2, color="#263445")
+        ax1.text(total + 0.35, idx, f"{total}", va="center", fontsize=10.8, color="#263445")
         if e > 0:
-            ax1.text(e / 2, idx, str(e), ha="center", va="center", fontsize=7.0, color="white", weight="bold")
+            ax1.text(e / 2, idx, str(e), ha="center", va="center", fontsize=10.8, color="white", weight="bold")
         if i > 0:
-            ax1.text(e + i / 2, idx, str(i), ha="center", va="center", fontsize=7.0, color="white", weight="bold")
+            ax1.text(e + i / 2, idx, str(i), ha="center", va="center", fontsize=10.8, color="white", weight="bold")
 
     cmap = LinearSegmentedColormap.from_list("activity_pressure", ["#f8fafc", "#b7d7ee", "#2f6db3"])
     image = ax2.imshow(matrix, cmap=cmap, aspect="auto")
-    ax2.set_title("Operational minutes per selected trip", fontsize=10.5)
+    ax2.set_title("Operational minutes per selected trip", fontsize=13, weight="bold")
     ax2.set_xticks([0, 1, 2], ["Deadhead", "Break", "Charge"])
     ax2.set_yticks(y, labels)
-    ax2.tick_params(axis="both", length=0, labelsize=8)
+    ax2.tick_params(axis="both", length=0, labelsize=10)
     ax2.spines[:].set_visible(False)
     for r in range(matrix.shape[0]):
         for c in range(matrix.shape[1]):
             value = matrix[r, c]
             color = "white" if value > matrix.max() * 0.62 else "#1f2937"
-            ax2.text(c, r, f"{value:.1f}", ha="center", va="center", fontsize=7.3, color=color, weight="bold")
+            ax2.text(c, r, f"{value:.1f}", ha="center", va="center", fontsize=10.8, color=color, weight="bold")
     cbar = fig.colorbar(image, ax=ax2, fraction=0.035, pad=0.02)
-    cbar.set_label("minutes / trip", fontsize=8)
-    cbar.ax.tick_params(labelsize=7)
+    cbar.set_label("minutes / trip", fontsize=10.8)
+    cbar.ax.tick_params(labelsize=9)
 
     fig.text(
         0.5,
-        0.02,
+        0.018,
         "Reading guide: high deadhead values indicate more repositioning, high break values indicate more stationary paid time, and high charge values indicate stronger EV charging use.",
         ha="center",
-        fontsize=8.0,
+        fontsize=10.8,
         color="#495057",
     )
-    fig.tight_layout(rect=(0, 0.05, 1, 0.91))
-    fig.savefig(path)
+    fig.tight_layout(rect=(0, 0.06, 1, 0.91))
+    fig.savefig(path, dpi=300)
     plt.close(fig)
 
 
@@ -1245,7 +1430,7 @@ def _draw_journey_lane(ax, segments, y, colors, max_labels) -> None:
                 label,
                 ha="center",
                 va="center",
-                fontsize=6.2,
+                fontsize=10.8,
                 color="white" if kind == "trip" else "#1f2937",
                 weight="bold" if kind == "charge" else "normal",
             )
@@ -1325,7 +1510,21 @@ def _hhmm(seconds: float) -> str:
     return f"{minutes // 60:02d}:{minutes % 60:02d}"
 
 
-def _draw_box(ax, x, y, w, h, num, title, body, badge_color="#2563eb") -> None:
+def _draw_box(
+    ax,
+    x,
+    y,
+    w,
+    h,
+    num,
+    title,
+    body,
+    badge_color="#2563eb",
+    title_fs=11,
+    body_fs=10.8,
+    badge_fs=10.8,
+    badge_radius=0.25,
+) -> None:
     from matplotlib.patches import Circle, FancyBboxPatch
 
     box = FancyBboxPatch(
@@ -1338,11 +1537,11 @@ def _draw_box(ax, x, y, w, h, num, title, body, badge_color="#2563eb") -> None:
         facecolor="#ffffff",
     )
     ax.add_patch(box)
-    badge = Circle((x + 0.45, y + h + 0.03), 0.25, facecolor=badge_color, edgecolor="white", linewidth=1.0)
+    badge = Circle((x + 0.45, y + h + 0.03), badge_radius, facecolor=badge_color, edgecolor="white", linewidth=1.0)
     ax.add_patch(badge)
-    ax.text(x + 0.45, y + h + 0.03, str(num), ha="center", va="center", color="white", weight="bold", fontsize=9)
-    ax.text(x + w / 2, y + h * 0.64, title, ha="center", va="center", fontsize=11, weight="bold", color="#111827")
-    ax.text(x + w / 2, y + h * 0.30, body, ha="center", va="center", fontsize=8.2, color="#5d6a78", linespacing=0.95)
+    ax.text(x + 0.45, y + h + 0.03, str(num), ha="center", va="center", color="white", weight="bold", fontsize=badge_fs)
+    ax.text(x + w / 2, y + h * 0.64, title, ha="center", va="center", fontsize=title_fs, weight="bold", color="#111827")
+    ax.text(x + w / 2, y + h * 0.30, body, ha="center", va="center", fontsize=body_fs, color="#5d6a78", linespacing=0.95)
 
 
 def _draw_plain_box(ax, x, y, w, h, label) -> None:
@@ -1358,10 +1557,10 @@ def _draw_plain_box(ax, x, y, w, h, label) -> None:
         facecolor="#f8fafc",
     )
     ax.add_patch(box)
-    ax.text(x + w / 2, y + h / 2, label, ha="center", va="center", fontsize=8.5, color="#1f2937", linespacing=0.95)
+    ax.text(x + w / 2, y + h / 2, label, ha="center", va="center", fontsize=10.8, color="#1f2937", linespacing=0.95)
 
 
-def _draw_formula_panel(ax, xy, w, h, title, formula, body) -> None:
+def _draw_formula_panel(ax, xy, w, h, title, formula, body, title_fs=12, formula_fs=11, body_fs=10.8) -> None:
     from matplotlib.patches import FancyBboxPatch
 
     x, y = xy
@@ -1375,9 +1574,9 @@ def _draw_formula_panel(ax, xy, w, h, title, formula, body) -> None:
         facecolor="#eef6ff",
     )
     ax.add_patch(panel)
-    ax.text(x + w / 2, y + h * 0.72, title, ha="center", va="center", fontsize=12, weight="bold", color="#111827")
-    ax.text(x + w / 2, y + h * 0.45, formula, ha="center", va="center", fontsize=11, color="#1f2937")
-    ax.text(x + w / 2, y + h * 0.20, body, ha="center", va="center", fontsize=8.6, color="#5d6a78")
+    ax.text(x + w / 2, y + h * 0.72, title, ha="center", va="center", fontsize=title_fs, weight="bold", color="#111827")
+    ax.text(x + w / 2, y + h * 0.45, formula, ha="center", va="center", fontsize=formula_fs, color="#1f2937")
+    ax.text(x + w / 2, y + h * 0.20, body, ha="center", va="center", fontsize=body_fs, color="#5d6a78")
 
 
 def _arrow(ax, start, end, label=None, dashed=False) -> None:
@@ -1398,7 +1597,7 @@ def _arrow(ax, start, end, label=None, dashed=False) -> None:
     if label:
         mx = (start[0] + end[0]) / 2
         my = (start[1] + end[1]) / 2
-        ax.text(mx, my + 0.12, label, ha="center", va="bottom", fontsize=7.5, color="#5d6a78")
+        ax.text(mx, my + 0.12, label, ha="center", va="bottom", fontsize=10.8, color="#5d6a78")
 
 
 if __name__ == "__main__":

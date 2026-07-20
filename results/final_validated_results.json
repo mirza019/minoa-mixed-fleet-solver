@@ -2,6 +2,7 @@
   "schema_version": 1,
   "description": "Canonical final validated thesis results for the MINOA Senior benchmark.",
   "method": "final no-regression archive",
+  "source": "Final thesis PDF, 21 July 2026",
   "headline_results": [
     {
       "instance": "Small",
@@ -28,6 +29,15 @@
       "final_no_regression_archive": true
     }
   ],
+  "headline_total": {
+    "validated_cost": 1697.15,
+    "vehicles": 22
+  },
+  "full_senior_benchmark": {
+    "instances": 12,
+    "total_validated_cost": 10000.48,
+    "total_vehicles": 126
+  },
   "full_benchmark_summary": {
     "scope": "Full Senior benchmark",
     "instance_or_benchmark": "12 instances total",

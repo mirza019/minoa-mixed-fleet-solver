@@ -17,6 +17,10 @@ EXPECTED_HEADLINE = {
     "Medium": {"validated_cost": 371.35, "vehicles": 5},
     "Large": {"validated_cost": 1163.35, "vehicles": 15},
 }
+EXPECTED_HEADLINE_TOTAL = {
+    "validated_cost": 1697.15,
+    "vehicles": 22,
+}
 EXPECTED_FULL = {
     "total_validated_cost": 10000.48,
     "total_vehicles": 126,
@@ -110,9 +114,15 @@ def _markdown_table(headers: list[str], rows: list[list[str]]) -> list[str]:
 
 def build_tables(data: dict[str, Any]) -> tuple[str, bool]:
     headline = _headline_by_instance(data)
-    summary = data.get("full_benchmark_summary")
+    headline_total = data.get("headline_total")
+    if not isinstance(headline_total, dict):
+        raise ValueError("Missing or invalid field: headline_total")
+    full = data.get("full_senior_benchmark")
+    if not isinstance(full, dict):
+        raise ValueError("Missing or invalid field: full_senior_benchmark")
+    summary = data.get("full_benchmark_summary", full)
     if not isinstance(summary, dict):
-        raise ValueError("Missing or invalid field: full_benchmark_summary")
+        raise ValueError("Invalid field: full_benchmark_summary")
 
     lines: list[str] = [
         "## Final validated thesis results",
@@ -128,46 +138,20 @@ def build_tables(data: dict[str, Any]) -> tuple[str, bool]:
             f"| Headline | {instance} | {_fmt_cost(row['validated_cost'])} | {int(row['vehicles'])} |"
         )
     lines.append(
+        "| Headline total | Small + Medium + Large | "
+        f"{_fmt_cost(headline_total['validated_cost'])} | {int(headline_total['vehicles'])} |"
+    )
+    lines.append(
         "| Full Senior benchmark | 12 instances total | "
-        f"{_fmt_cost(summary['total_validated_cost'])} | {int(summary['total_vehicles'])} |"
+        f"{_fmt_cost(full['total_validated_cost'])} | {int(full['total_vehicles'])} |"
     )
 
     detail_rows = _detail_rows(data)
-    lines.extend(
-        [
-            "",
-            "## Final no-regression archive table",
-            "",
-            "This is the canonical table used for the thesis result summary.",
-            "",
-        ]
-    )
-    detail_headers = [header for header, _ in DETAIL_COLUMNS]
-    detail_values = [
-        [_fmt_value(row.get(key)) for _, key in DETAIL_COLUMNS]
-        for row in detail_rows
-    ]
-    lines.extend(_markdown_table(detail_headers, detail_values))
-    lines.extend(
-        [
-            "",
-            "## Final archive totals",
-            "",
-            "| Metric | Value |",
-            "|---|---:|",
-            f"| Feasible instances | {sum(1 for row in detail_rows if row.get('valid'))} / {len(detail_rows)} |",
-            f"| Total validated cost | {_fmt_cost(summary['total_validated_cost'])} |",
-            f"| Total vehicles | {int(summary['total_vehicles'])} |",
-            f"| EV vehicles | {int(summary.get('ev_vehicles', 0))} |",
-            f"| ICE vehicles | {int(summary.get('ice_vehicles', 0))} |",
-            f"| Selected trips | {int(summary.get('selected_trips', 0))} |",
-        ]
-    )
 
     lines.extend(
         [
             "",
-            "## Consistency check",
+            "## Consistency status",
             "",
             "| Check | Expected | Actual | Status |",
             "|---|---:|---:|---:|",
@@ -191,11 +175,55 @@ def build_tables(data: dict[str, Any]) -> tuple[str, bool]:
             f"{int(row.get('vehicles'))} | {vehicle_status} |"
         )
 
+    detail_by_instance = {str(row["instance"]): row for row in detail_rows}
+    headline_detail_cost = round(
+        sum(float(detail_by_instance[instance]["cost"]) for instance in EXPECTED_HEADLINE),
+        2,
+    )
+    headline_total_vehicles = sum(
+        int(headline[instance]["vehicles"]) for instance in EXPECTED_HEADLINE
+    )
+    headline_total_cost_status = _status(
+        EXPECTED_HEADLINE_TOTAL["validated_cost"], headline_total.get("validated_cost")
+    )
+    headline_total_vehicle_status = _status(
+        EXPECTED_HEADLINE_TOTAL["vehicles"], headline_total.get("vehicles")
+    )
+    headline_sum_cost_status = _status(
+        EXPECTED_HEADLINE_TOTAL["validated_cost"], headline_detail_cost
+    )
+    headline_sum_vehicle_status = _status(
+        EXPECTED_HEADLINE_TOTAL["vehicles"], headline_total_vehicles
+    )
+    all_passed = (
+        all_passed
+        and headline_total_cost_status == "PASS"
+        and headline_total_vehicle_status == "PASS"
+        and headline_sum_cost_status == "PASS"
+        and headline_sum_vehicle_status == "PASS"
+    )
+    lines.append(
+        f"| Headline total cost | {_fmt_cost(EXPECTED_HEADLINE_TOTAL['validated_cost'])} | "
+        f"{_fmt_cost(headline_total.get('validated_cost'))} | {headline_total_cost_status} |"
+    )
+    lines.append(
+        f"| Headline total vehicles | {EXPECTED_HEADLINE_TOTAL['vehicles']} | "
+        f"{int(headline_total.get('vehicles'))} | {headline_total_vehicle_status} |"
+    )
+    lines.append(
+        f"| Headline detailed cost sum | {_fmt_cost(EXPECTED_HEADLINE_TOTAL['validated_cost'])} | "
+        f"{_fmt_cost(headline_detail_cost)} | {headline_sum_cost_status} |"
+    )
+    lines.append(
+        f"| Headline row vehicle sum | {EXPECTED_HEADLINE_TOTAL['vehicles']} | "
+        f"{headline_total_vehicles} | {headline_sum_vehicle_status} |"
+    )
+
     total_cost_status = _status(
-        EXPECTED_FULL["total_validated_cost"], summary.get("total_validated_cost")
+        EXPECTED_FULL["total_validated_cost"], full.get("total_validated_cost")
     )
     total_vehicle_status = _status(
-        EXPECTED_FULL["total_vehicles"], summary.get("total_vehicles")
+        EXPECTED_FULL["total_vehicles"], full.get("total_vehicles")
     )
     all_passed = all_passed and total_cost_status == "PASS" and total_vehicle_status == "PASS"
     detail_total_cost = round(sum(float(row["cost"]) for row in detail_rows), 2)
@@ -210,11 +238,11 @@ def build_tables(data: dict[str, Any]) -> tuple[str, bool]:
     )
     lines.append(
         f"| Total cost | {_fmt_cost(EXPECTED_FULL['total_validated_cost'])} | "
-        f"{_fmt_cost(summary.get('total_validated_cost'))} | {total_cost_status} |"
+        f"{_fmt_cost(full.get('total_validated_cost'))} | {total_cost_status} |"
     )
     lines.append(
         f"| Total vehicles | {EXPECTED_FULL['total_vehicles']} | "
-        f"{int(summary.get('total_vehicles'))} | {total_vehicle_status} |"
+        f"{int(full.get('total_vehicles'))} | {total_vehicle_status} |"
     )
     lines.append(
         f"| Detailed row cost sum | {_fmt_cost(EXPECTED_FULL['total_validated_cost'])} | "
@@ -224,6 +252,8 @@ def build_tables(data: dict[str, Any]) -> tuple[str, bool]:
         f"| Detailed row vehicle sum | {EXPECTED_FULL['total_vehicles']} | "
         f"{detail_total_vehicles} | {detail_vehicle_status} |"
     )
+    valid_status = "PASS" if all(bool(row.get("valid")) for row in detail_rows) else "FAIL"
+    lines.append(f"| Final archive rows valid | PASS | {valid_status} | {valid_status} |")
     return "\n".join(lines) + "\n", all_passed
 
 

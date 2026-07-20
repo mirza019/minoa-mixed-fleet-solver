@@ -344,7 +344,7 @@ def optimize_instance(
     validation = run_validator(args.validator, input_path, output_path)
     external_cost = parse_vs_cost(validation)
     if external_cost is None:
-        return error_row(instance_name(input_path), OPTIMIZED_APPROACH_NAME, summarize_error(validation))
+        return solve_validate_with_repairs(input_path, output_path, args)
     row = success_row(input_path, output_path, external_cost, OPTIMIZED_APPROACH_NAME)
     row["Approach"] = f"{OPTIMIZED_APPROACH_NAME} adaptive"
     row["Search tried"] = tried

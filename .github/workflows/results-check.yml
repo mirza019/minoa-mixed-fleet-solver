@@ -1,12 +1,9 @@
 name: Final Results Check
 
 on:
+  push:
   workflow_dispatch:
   pull_request:
-    paths:
-      - "results/final_validated_results.json"
-      - "scripts/print_final_results_table.py"
-      - ".github/workflows/results-check.yml"
 
 jobs:
   final-results:
@@ -22,6 +19,12 @@ jobs:
         with:
           python-version: "3.11"
 
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "17"
+
       - name: Install dependencies if present
         run: |
           if [[ -f requirements.txt ]]; then
@@ -29,17 +32,52 @@ jobs:
             python -m pip install -r requirements.txt
           fi
 
+      - name: Check Python imports
+        run: |
+          python - <<'PY'
+          import sys
+          from pathlib import Path
+
+          root = Path.cwd()
+          sys.path.insert(0, str(root / "scripts"))
+
+          import minoa_solver  # noqa: F401
+          import minoa_optimize  # noqa: F401
+          import minoa_pipeline  # noqa: F401
+          import minoa_report  # noqa: F401
+          import run_experiment  # noqa: F401
+          import print_final_results_table  # noqa: F401
+          PY
+
       - name: Run available tests
         run: |
           if [[ -d tests ]]; then
-            python -m pip install pytest
             python -m pytest
           else
             echo "No tests directory found; skipping tests."
           fi
+
+      - name: Smoke-test Small instance output generation
+        run: |
+          python scripts/run_experiment.py \
+            --algorithm greedy \
+            --scope sml \
+            --only Small \
+            --output-dir outputs/minoa/ci-smoke
 
       - name: Print and validate final result table
         run: |
           python scripts/print_final_results_table.py --summary-file final_results_summary.md
           cat final_results_summary.md
           cat final_results_summary.md >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "PASS: all final thesis result values match the canonical file." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Check generated files are not tracked
+        run: |
+          tracked_generated="$(git ls-files | grep -E '(^outputs/|^data/processed/|^results/lower_bounds/|__pycache__|\.pyc$|\.pytest_cache|\.DS_Store|\.log$)' || true)"
+          if [[ -n "$tracked_generated" ]]; then
+            echo "Generated or cache files are tracked:"
+            echo "$tracked_generated"
+            exit 1
+          fi
