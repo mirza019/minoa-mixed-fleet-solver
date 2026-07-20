@@ -64,10 +64,10 @@ results. It is not used to derive or repair the solution structure.
 Use Python 3.9 or newer. The GitHub Actions workflows use Python 3.11.
 
 ```bash
-python -m venv .venv
+python3 -m venv .venv
 source .venv/bin/activate
-python -m pip install --upgrade pip
-python -m pip install -r requirements.txt
+python3 -m pip install --upgrade pip
+python3 -m pip install -r requirements.txt
 ```
 
 Java is required for the desktop validator:
@@ -81,24 +81,27 @@ java -version
 From a clean checkout, run the following commands:
 
 ```bash
+python3 -m venv .venv
 source .venv/bin/activate
+python3 -m pip install --upgrade pip
+python3 -m pip install -r requirements.txt
 
 # Optional: remove old generated files before a fresh run.
 rm -rf outputs/minoa data/processed/minoa results/lower_bounds
 
 # Run the final method on all Senior instances.
 # The pipeline generates output JSON files, runs the validator, and prints a table.
-python scripts/run_experiment.py --algorithm multistart --scope all
+.venv/bin/python scripts/run_experiment.py --algorithm multistart --scope all
 
 # Print/check the retained final no-regression archive table.
-python scripts/print_final_results_table.py \
+.venv/bin/python scripts/print_final_results_table.py \
   --summary-file outputs/minoa/final_pipeline/final_results_summary.md
 
 # Generate and audit Small, Medium, and Large output JSON files.
-python scripts/run_experiment.py --algorithm multistart --scope sml
+.venv/bin/python scripts/run_experiment.py --algorithm multistart --scope sml
 
 # Run the unit tests.
-python -m pytest
+.venv/bin/python -m pytest
 ```
 
 `run_experiment.py` always means "run a fresh experiment". With `--scope all`,
@@ -523,8 +526,9 @@ generated output, cache, or log files are accidentally tracked.
 
 | Problem | Likely cause | Fix |
 |---|---|---|
-| `No module named pytest` | Dependencies were not installed from the current `requirements.txt`. | Run `python -m pip install -r requirements.txt`. |
+| `python: command not found` | macOS may provide `python3` but not `python`. | Use `python3 -m venv .venv`, then `source .venv/bin/activate`. |
+| `No module named pytest` | Dependencies were not installed from the current `requirements.txt`. | Run `python3 -m pip install -r requirements.txt` after activating `.venv`. |
 | `java: command not found` | Java is not installed or not on `PATH`. | Install a Java runtime and check with `java -version`. |
-| Solver output is feasible but not exactly the archive cost | Multi-start search is heuristic and may find a different feasible candidate. | Use `python scripts/print_final_results_table.py --summary-file outputs/minoa/final_pipeline/final_results_summary.md` for the exact thesis archive table. |
+| Solver output is feasible but not exactly the archive cost | Multi-start search is heuristic and may find a different feasible candidate. | Use `.venv/bin/python scripts/print_final_results_table.py --summary-file outputs/minoa/final_pipeline/final_results_summary.md` for the exact thesis archive table. |
 | Generated files appear in `git status` | A local ignore rule is missing or the file is outside ignored output folders. | Keep generated runs under `outputs/minoa/`, `data/processed/minoa/`, or `results/lower_bounds/`. |
 | A raw input file cannot be parsed | One downloaded benchmark file may need a processed working copy. | Use the pipeline commands; they write normalized working files under `data/processed/minoa/` without changing raw inputs. |
