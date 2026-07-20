@@ -18,6 +18,7 @@ scripts/
   minoa_optimize.py            Multi-start search for stronger headline results
   minoa_pipeline.py            Normalizes raw inputs, solves, validates, reports
   minoa_report.py              External-validator table reporter
+  validate_pipeline_outputs.py Revalidates all outputs listed in a manifest
   run_experiment.py            One-command runner with --algorithm
   run_sml_experiments.py       Small/Medium/Large experiment runner
   run_all_experiments.py       All-instance experiment runner
@@ -34,7 +35,7 @@ tools/minoa/desktopValidator/desktopValidator/desktopValidator.jar
 .github/workflows/
   MINOA Headline Instances     Runs Small, Medium, Large separately
   MINOA All Instances          Runs all senior instances
-  Final Results Check          Checks the canonical thesis result table
+  Final Results Check          Checks the final no-regression archive table
 ```
 
 Generated outputs are written mainly under `outputs/minoa/` and processed
@@ -85,10 +86,11 @@ source .venv/bin/activate
 # Optional: remove old generated files before a fresh run.
 rm -rf outputs/minoa data/processed/minoa results/lower_bounds
 
-# Rebuild all Senior instances with the final method and print validator results.
+# Run the final method on all Senior instances.
+# The pipeline generates output JSON files, runs the validator, and prints a table.
 python scripts/run_experiment.py --algorithm multistart --scope all
 
-# Print/check the exact no-regression archive table reported in the thesis.
+# Print/check the retained final no-regression archive table.
 python scripts/print_final_results_table.py \
   --summary-file outputs/minoa/final_pipeline/final_results_summary.md
 
@@ -99,15 +101,15 @@ python scripts/run_experiment.py --algorithm multistart --scope sml
 python -m pytest
 ```
 
-`run_experiment.py` always means "run a fresh experiment". With
-`--algorithm multistart --scope all`, it regenerates all Senior-instance output
-JSON files, validates them, and prints the fresh audit table. Because
-multi-start search is bounded, this fresh direct run can produce a slightly
-different feasible schedule than the retained thesis archive.
+`run_experiment.py` always means "run a fresh experiment". With `--scope all`,
+the command generates output JSON files, passes the generated input/output pairs
+through the validator inside the pipeline, and prints the resulting table.
+Because the multi-start search is bounded, a fresh direct run can produce a
+slightly different feasible schedule than the retained final archive.
 
-`print_final_results_table.py` is the separate exact thesis-result command. It
-creates or checks `results/final_validated_results.json`, prints the final
-archive table, and writes the same Markdown summary to
+`print_final_results_table.py` is a separate result-check command. It creates or
+checks `results/final_validated_results.json`, prints the retained final archive
+table, and writes the same Markdown summary to
 `outputs/minoa/final_pipeline/final_results_summary.md`.
 
 ## Run Small, Medium, and Large
@@ -147,9 +149,9 @@ Quick test:
 
 ## Run All Senior Instances
 
-This command runs all available Senior instances through the direct pipeline.
-Small, Medium, and Large use the optimized headline search. The other instances
-use the robust charging-aware path-cover pipeline.
+These commands run all available Senior instances through the direct pipeline.
+The pipeline normalizes working input copies when needed, solves each instance,
+runs the validator for each generated output, and prints one result table.
 
 ```bash
 .venv/bin/python scripts/run_all_experiments.py
@@ -175,9 +177,30 @@ To rebuild all Senior instances with the final method, use:
 
 This creates fresh output JSON files under `outputs/minoa/all_multistart/`,
 creates processed working inputs under `data/processed/minoa/all_multistart/`,
-runs the external audit, and prints the fresh all-instance result table.
+runs the validator inside the pipeline, and prints the fresh all-instance result
+table. The same wrapper can run the other implemented algorithms:
 
-For the exact final thesis archive summary, use:
+```bash
+.venv/bin/python scripts/run_experiment.py --algorithm greedy --scope all
+.venv/bin/python scripts/run_experiment.py --algorithm pathcover --scope all
+.venv/bin/python scripts/run_experiment.py --algorithm weighted --scope all
+.venv/bin/python scripts/run_experiment.py --algorithm multistart --scope all
+```
+
+Use `--scope sml` to run only Small, Medium, and Large:
+
+```bash
+.venv/bin/python scripts/run_experiment.py --algorithm weighted --scope sml
+.venv/bin/python scripts/run_experiment.py --algorithm multistart --scope sml
+```
+
+For a single headline instance, add `--only`:
+
+```bash
+.venv/bin/python scripts/run_experiment.py --algorithm multistart --scope sml --only Small
+```
+
+For the retained final no-regression archive summary, use:
 
 ```bash
 .venv/bin/python scripts/print_final_results_table.py \
@@ -185,20 +208,36 @@ For the exact final thesis archive summary, use:
 ```
 
 This creates/checks `results/final_validated_results.json`, writes
-`outputs/minoa/final_pipeline/final_results_summary.md`, and prints the final
-no-regression archive table used in the thesis. The final all-instance archive
-result is total validated cost `10000.48` and `126` vehicles.
+`outputs/minoa/final_pipeline/final_results_summary.md`, and prints the retained
+final archive table. The retained all-instance archive result is total validated
+cost `10000.48` and `126` used vehicle blocks.
 
 ## Validate Existing Input/Output Pairs
 
 Use `minoa_report.py` if output JSON files already exist and you only want to
-check them with the validator and print a table.
+check selected input/output pairs with the validator and print a table.
 
 ```bash
 .venv/bin/python scripts/minoa_report.py \
-  data/raw/minoa/senior/Small_Input_S.json:outputs/minoa/headline/Small_Output_multi_start_pathcover.json \
-  data/raw/minoa/senior/Medium_Input_S.json:outputs/minoa/headline/Medium_Output_multi_start_pathcover.json \
-  data/raw/minoa/senior/Large_Input_S.json:outputs/minoa/headline/Large_Output_multi_start_pathcover.json
+  data/raw/minoa/senior/Small_Input_S.json:outputs/minoa/sml_multistart/Small_Output_multistart.json \
+  data/raw/minoa/senior/Medium_Input_S.json:outputs/minoa/sml_multistart/Medium_Output_multistart.json \
+  data/raw/minoa/senior/Large_Input_S.json:outputs/minoa/sml_multistart/Large_Output_multistart.json
+```
+
+After an all-instance pipeline run, revalidate every generated output listed in
+the pipeline manifest with:
+
+```bash
+.venv/bin/python scripts/validate_pipeline_outputs.py \
+  --manifest outputs/minoa/all_multistart/pipeline_manifest.json
+```
+
+If a different output directory was used, point `--manifest` to that run's
+`pipeline_manifest.json` file. For example:
+
+```bash
+.venv/bin/python scripts/validate_pipeline_outputs.py \
+  --manifest outputs/minoa/all_weighted/pipeline_manifest.json
 ```
 
 ## Lower-Bound Reports

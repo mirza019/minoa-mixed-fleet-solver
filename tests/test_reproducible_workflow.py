@@ -12,6 +12,7 @@ if str(ROOT / "scripts") not in sys.path:
 
 import print_final_results_table
 import run_experiment
+import validate_pipeline_outputs
 
 
 def test_final_results_table_reports_canonical_archive_totals() -> None:
@@ -71,6 +72,26 @@ def test_run_experiment_multistart_all_runs_fresh_pipeline(monkeypatch) -> None:
     assert "scripts/run_all_experiments.py" in calls[0]
     assert "--optimized-all" in calls[0]
     assert "scripts/print_final_results_table.py" not in calls[0]
+
+
+def test_validate_pipeline_outputs_reads_manifest_pairs(tmp_path: Path) -> None:
+    input_path = tmp_path / "Small_Input_S.json"
+    output_path = tmp_path / "Small_Output.json"
+    input_path.write_text("{}", encoding="utf-8")
+    output_path.write_text("{}", encoding="utf-8")
+    manifest = tmp_path / "pipeline_manifest.json"
+    manifest.write_text(
+        (
+            '{"normalization": [{"instance": "Small", "status": "ok", '
+            f'"processed": "{input_path}"}}], '
+            f'"rows": [{{"Instance": "Small", "Output": "{output_path}"}}]}}'
+        ),
+        encoding="utf-8",
+    )
+
+    assert validate_pipeline_outputs.pairs_from_manifest(manifest) == [
+        (input_path, output_path)
+    ]
 
 
 def test_run_experiment_creates_output_directory_and_reports_pairs(
