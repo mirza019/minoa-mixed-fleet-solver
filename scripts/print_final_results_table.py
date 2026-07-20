@@ -220,6 +220,49 @@ def _markdown_table(headers: list[str], rows: list[list[str]]) -> list[str]:
     ]
 
 
+def _is_markdown_separator(line: str) -> bool:
+    cells = [cell.strip() for cell in line.strip().strip("|").split("|")]
+    return bool(cells) and all(cell and set(cell) <= {"-", ":"} for cell in cells)
+
+
+def _render_plain_table(rows: list[list[str]]) -> list[str]:
+    widths = [max(len(row[index]) for row in rows) for index in range(len(rows[0]))]
+    rendered: list[str] = []
+    for index, row in enumerate(rows):
+        rendered.append("  ".join(cell.ljust(widths[col]) for col, cell in enumerate(row)).rstrip())
+        if index == 0:
+            rendered.append("  ".join("-" * width for width in widths).rstrip())
+    return rendered
+
+
+def terminal_output(markdown: str) -> str:
+    """Render Markdown tables as aligned plain text for terminal output."""
+    lines = markdown.splitlines()
+    output: list[str] = []
+    table_rows: list[list[str]] = []
+
+    def flush_table() -> None:
+        if table_rows:
+            output.extend(_render_plain_table(table_rows))
+            table_rows.clear()
+
+    for line in lines:
+        if line.startswith("|") and line.endswith("|"):
+            if not _is_markdown_separator(line):
+                table_rows.append([cell.strip() for cell in line.strip().strip("|").split("|")])
+            continue
+
+        flush_table()
+        if line.startswith("## "):
+            output.append(line[3:])
+            output.append("-" * len(line[3:]))
+        else:
+            output.append(line)
+
+    flush_table()
+    return "\n".join(output).rstrip() + "\n"
+
+
 def build_tables(data: dict[str, Any]) -> tuple[str, bool]:
     headline = _headline_by_instance(data)
     headline_total = data.get("headline_total")
@@ -418,10 +461,10 @@ def main() -> int:
         print(f"ERROR: {exc}", file=sys.stderr)
         return 2
 
-    print(markdown, end="")
     if args.summary_file:
         args.summary_file.parent.mkdir(parents=True, exist_ok=True)
         args.summary_file.write_text(markdown, encoding="utf-8")
+    print(terminal_output(markdown), end="")
     return 0 if all_passed else 1
 
 

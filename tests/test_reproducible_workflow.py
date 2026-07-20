@@ -28,6 +28,22 @@ def test_final_results_table_reports_canonical_archive_totals() -> None:
     assert "| Headline | Large | 1163.35 | 15 |" in markdown
 
 
+def test_final_results_table_terminal_output_is_aligned() -> None:
+    markdown = (
+        "## Result\n\n"
+        "| Scope | Cost |\n"
+        "|---|---:|\n"
+        "| Small | 162.44 |\n"
+    )
+
+    terminal = print_final_results_table.terminal_output(markdown)
+
+    assert "|" not in terminal
+    assert "---" in terminal
+    assert "Scope  Cost" in terminal
+    assert "Small  162.44" in terminal
+
+
 def test_run_experiment_final_pipeline_writes_summary(monkeypatch) -> None:
     calls: list[list[str]] = []
 
