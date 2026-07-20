@@ -44,7 +44,7 @@ def test_final_results_table_terminal_output_is_aligned() -> None:
     assert "Small  162.44" in terminal
 
 
-def test_run_experiment_final_pipeline_writes_summary(monkeypatch) -> None:
+def test_run_experiment_multistart_all_runs_fresh_pipeline(monkeypatch) -> None:
     calls: list[list[str]] = []
 
     def fake_run(command, cwd=None, check=False):
@@ -53,18 +53,24 @@ def test_run_experiment_final_pipeline_writes_summary(monkeypatch) -> None:
 
     monkeypatch.setattr(run_experiment.subprocess, "run", fake_run)
 
-    run_experiment.print_final_archive_summary()
+    args = argparse.Namespace(
+        algorithm="multistart",
+        scope="all",
+        only=None,
+        quick=False,
+        fresh_audit=False,
+        output_dir=None,
+        processed_dir=None,
+        input_dir=Path("data/raw/minoa/senior"),
+        validator=Path("tools/minoa/desktopValidator/desktopValidator/desktopValidator.jar"),
+    )
 
-    assert calls == [
-        [
-            sys.executable,
-            "scripts/print_final_results_table.py",
-            "--results",
-            "results/final_validated_results.json",
-            "--summary-file",
-            "outputs/minoa/final_pipeline/final_results_summary.md",
-        ]
-    ]
+    run_experiment.run_all(args)
+
+    assert calls
+    assert "scripts/run_all_experiments.py" in calls[0]
+    assert "--optimized-all" in calls[0]
+    assert "scripts/print_final_results_table.py" not in calls[0]
 
 
 def test_run_experiment_creates_output_directory_and_reports_pairs(

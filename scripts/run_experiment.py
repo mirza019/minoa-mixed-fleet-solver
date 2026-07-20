@@ -6,7 +6,7 @@ Examples:
     .venv/bin/python scripts/run_experiment.py --algorithm greedy
     .venv/bin/python scripts/run_experiment.py --algorithm multistart --scope sml
     .venv/bin/python scripts/run_experiment.py --algorithm weighted --scope all
-    .venv/bin/python scripts/run_experiment.py --algorithm multistart --scope all --fresh-audit
+    .venv/bin/python scripts/print_final_results_table.py
 """
 
 from __future__ import annotations
@@ -71,11 +71,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--fresh-audit",
         action="store_true",
-        help=(
-            "For --algorithm multistart --scope all, rerun the direct all-instance "
-            "pipeline before printing the final archive. By default the command "
-            "prints the canonical final no-regression archive table."
-        ),
+        help="Deprecated compatibility flag. All --scope all runs now execute a fresh experiment.",
     )
     parser.add_argument(
         "--input-dir",
@@ -146,9 +142,6 @@ def run_sml(args: argparse.Namespace) -> None:
 
 def run_all(args: argparse.Namespace) -> None:
     if args.algorithm == "multistart":
-        if not args.fresh_audit:
-            print_final_archive_summary()
-            return
         output_dir = args.output_dir or Path("outputs/minoa/all_multistart")
         processed_dir = args.processed_dir or Path("data/processed/minoa/all_multistart")
         command = [
@@ -167,14 +160,7 @@ def run_all(args: argparse.Namespace) -> None:
             command.append("--quick-headliners")
         else:
             command.append("--optimized-all")
-        proc = subprocess.run(command, cwd=ROOT, check=False)
-        if proc.returncode != 0:
-            print(
-                "\nFresh direct pipeline audit finished with validation failures. "
-                "The final no-regression archive summary follows.",
-                flush=True,
-            )
-        print_final_archive_summary()
+        subprocess.run(command, cwd=ROOT, check=True)
         return
 
     algorithm = ALGORITHMS[args.algorithm]
@@ -198,28 +184,6 @@ def run_all(args: argparse.Namespace) -> None:
         "--no-optimized-headliners",
     ]
     subprocess.run(command, cwd=ROOT, check=True)
-
-
-def print_final_archive_summary() -> None:
-    result_file = Path("results/final_validated_results.json")
-    summary_file = Path("outputs/minoa/final_pipeline/final_results_summary.md")
-    print("\n=== Final MINOA thesis-result pipeline ===", flush=True)
-    print(f"Creating/checking result archive: {result_file}", flush=True)
-    print(f"Writing Markdown summary: {summary_file}", flush=True)
-    subprocess.run(
-        [
-            sys.executable,
-            "scripts/print_final_results_table.py",
-            "--results",
-            str(result_file),
-            "--summary-file",
-            str(summary_file),
-        ],
-        cwd=ROOT,
-        check=True,
-    )
-    print(f"Result archive ready: {result_file}", flush=True)
-    print(f"Summary saved to: {summary_file}", flush=True)
 
 
 def single_run_command(

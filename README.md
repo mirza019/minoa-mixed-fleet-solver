@@ -85,9 +85,12 @@ source .venv/bin/activate
 # Optional: remove old generated files before a fresh run.
 rm -rf outputs/minoa data/processed/minoa results/lower_bounds
 
-# Professor-facing thesis-result pipeline.
-# Creates/checks results/final_validated_results.json and prints the final table.
+# Rebuild all Senior instances with the final method and print validator results.
 python scripts/run_experiment.py --algorithm multistart --scope all
+
+# Print/check the exact no-regression archive table reported in the thesis.
+python scripts/print_final_results_table.py \
+  --summary-file outputs/minoa/final_pipeline/final_results_summary.md
 
 # Generate and audit Small, Medium, and Large output JSON files.
 python scripts/run_experiment.py --algorithm multistart --scope sml
@@ -96,18 +99,16 @@ python scripts/run_experiment.py --algorithm multistart --scope sml
 python -m pytest
 ```
 
-The first command with `--scope all` is the shortest professor-facing
-reproducibility command. It creates or checks
-`results/final_validated_results.json`, prints the final thesis table, and
-writes the same Markdown summary to
-`outputs/minoa/final_pipeline/final_results_summary.md`. If the JSON file was
-deleted in a fresh clone, the command recreates it before checking the expected
-Small, Medium, Large, and all-instance values.
-The second command regenerates fresh heuristic output files for Small, Medium,
-and Large and checks them with the external audit. Because multi-start search is
-bounded, a fresh direct search can produce a slightly different feasible
-schedule than the retained archive; report such a run separately instead of
-silently replacing the archive.
+`run_experiment.py` always means "run a fresh experiment". With
+`--algorithm multistart --scope all`, it regenerates all Senior-instance output
+JSON files, validates them, and prints the fresh audit table. Because
+multi-start search is bounded, this fresh direct run can produce a slightly
+different feasible schedule than the retained thesis archive.
+
+`print_final_results_table.py` is the separate exact thesis-result command. It
+creates or checks `results/final_validated_results.json`, prints the final
+archive table, and writes the same Markdown summary to
+`outputs/minoa/final_pipeline/final_results_summary.md`.
 
 ## Run Small, Medium, and Large
 
@@ -166,23 +167,27 @@ The all-instance report is written to:
 outputs/minoa/all_instances/all_instances_report.md
 ```
 
-For the exact final thesis archive summary, use:
+To rebuild all Senior instances with the final method, use:
 
 ```bash
 .venv/bin/python scripts/run_experiment.py --algorithm multistart --scope all
 ```
 
-This creates/checks `results/final_validated_results.json`, writes
-`outputs/minoa/final_pipeline/final_results_summary.md`, and prints the final
-no-regression archive table used in the thesis. The final all-instance result is
-total validated cost `10000.48` and `126` vehicles.
+This creates fresh output JSON files under `outputs/minoa/all_multistart/`,
+creates processed working inputs under `data/processed/minoa/all_multistart/`,
+runs the external audit, and prints the fresh all-instance result table.
 
-For an additional fresh direct all-instance audit before printing the archive,
-use:
+For the exact final thesis archive summary, use:
 
 ```bash
-.venv/bin/python scripts/run_experiment.py --algorithm multistart --scope all --fresh-audit
+.venv/bin/python scripts/print_final_results_table.py \
+  --summary-file outputs/minoa/final_pipeline/final_results_summary.md
 ```
+
+This creates/checks `results/final_validated_results.json`, writes
+`outputs/minoa/final_pipeline/final_results_summary.md`, and prints the final
+no-regression archive table used in the thesis. The final all-instance archive
+result is total validated cost `10000.48` and `126` vehicles.
 
 ## Validate Existing Input/Output Pairs
 
@@ -240,13 +245,12 @@ conceptual workflow diagrams or method flowcharts.
 First make sure the final verified archive exists:
 
 ```bash
-.venv/bin/python scripts/run_experiment.py --algorithm multistart --scope all
+.venv/bin/python scripts/print_final_results_table.py \
+  --summary-file outputs/minoa/final_pipeline/final_results_summary.md
 ```
 
 This command prints the canonical final no-regression archive table used in the
-thesis, which reports total validated cost `10000.48` and `126` vehicles. To
-rerun the direct all-instance pipeline as an additional audit before printing
-the archive, add `--fresh-audit`.
+thesis, which reports total validated cost `10000.48` and `126` vehicles.
 
 Then regenerate the result graphs based on the final validated archive:
 
@@ -482,6 +486,6 @@ generated output, cache, or log files are accidentally tracked.
 |---|---|---|
 | `No module named pytest` | Dependencies were not installed from the current `requirements.txt`. | Run `python -m pip install -r requirements.txt`. |
 | `java: command not found` | Java is not installed or not on `PATH`. | Install a Java runtime and check with `java -version`. |
-| Solver output is feasible but not exactly the archive cost | Multi-start search is heuristic and may find a different feasible candidate. | Use `python scripts/run_experiment.py --algorithm multistart --scope all` for the canonical thesis archive table. |
+| Solver output is feasible but not exactly the archive cost | Multi-start search is heuristic and may find a different feasible candidate. | Use `python scripts/print_final_results_table.py --summary-file outputs/minoa/final_pipeline/final_results_summary.md` for the exact thesis archive table. |
 | Generated files appear in `git status` | A local ignore rule is missing or the file is outside ignored output folders. | Keep generated runs under `outputs/minoa/`, `data/processed/minoa/`, or `results/lower_bounds/`. |
 | A raw input file cannot be parsed | One downloaded benchmark file may need a processed working copy. | Use the pipeline commands; they write normalized working files under `data/processed/minoa/` without changing raw inputs. |
