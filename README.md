@@ -85,7 +85,7 @@ source .venv/bin/activate
 # Optional: remove old generated files before a fresh run.
 rm -rf outputs/minoa data/processed/minoa results/lower_bounds
 
-# Print the canonical final no-regression archive table used in the thesis.
+# Print and check the exact final no-regression archive table used in the thesis.
 python scripts/run_experiment.py --algorithm multistart --scope all
 
 # Generate and audit Small, Medium, and Large output JSON files.
@@ -95,13 +95,16 @@ python scripts/run_experiment.py --algorithm multistart --scope sml
 python -m pytest
 ```
 
-The first command with `--scope all` prints the retained final archive from
-`results/final_validated_results.json`. The second command regenerates fresh
-heuristic output files for Small, Medium, and Large and checks them with the
-external audit. Because multi-start search is heuristic, a fresh direct search
-may find a slightly different feasible schedule than the retained archive. The
-archive file is the canonical thesis result reference; generated output JSON
-files are intentionally not committed.
+The first command with `--scope all` prints and checks the retained final archive
+from `results/final_validated_results.json`. This tracked file is the canonical
+machine-readable thesis result reference. If it was deleted accidentally in a
+Git clone, the result-table command recreates it from the final archive data
+defined in `scripts/print_final_results_table.py`.
+The second command regenerates fresh heuristic output files for Small, Medium,
+and Large and checks them with the external audit. Because multi-start search is
+bounded, a fresh direct search can produce a slightly different feasible
+schedule than the retained archive; report such a run separately instead of
+silently replacing the archive.
 
 ## Run Small, Medium, and Large
 
@@ -287,11 +290,14 @@ above.
 
 Current headline results:
 
-The canonical machine-readable result file is:
+The canonical machine-readable thesis result file is:
 
 ```text
 results/final_validated_results.json
 ```
+
+This file is part of the reproducibility material. It records the final
+no-regression archive used in the thesis and is checked by GitHub Actions.
 
 The compact final thesis result table is:
 
