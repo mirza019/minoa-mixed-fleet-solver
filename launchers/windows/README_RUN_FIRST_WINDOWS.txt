@@ -29,3 +29,4 @@ Double-click the files in this exact order:
    Runs the Python test suite.
 
 If a file is opened too early, it prints the required previous step.
+Each launcher activates .venv automatically before running its command.

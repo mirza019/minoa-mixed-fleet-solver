@@ -132,10 +132,11 @@ launchers/windows/01_setup.bat
 -> launchers/windows/08_run_tests.bat
 ```
 
-The setup file creates `.venv` and installs the Python requirements. The run
-files check for `.venv`, Java, and the MINOA validator path before starting the
-experiment pipeline. If a file is opened out of order, it prints the required
-previous step instead of showing a Python traceback.
+The setup file creates `.venv` and installs the Python requirements. Each later
+launcher activates `.venv` automatically, then checks for Java and the MINOA
+validator path before starting the experiment pipeline. If a file is opened out
+of order, it prints the required previous step instead of showing a Python
+traceback.
 
 `run_experiment.py` always means "run a fresh experiment". With `--scope all`,
 the command generates output JSON files, passes the generated input/output pairs

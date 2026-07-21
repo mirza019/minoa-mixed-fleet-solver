@@ -28,6 +28,7 @@ Windows:
 
 Notes:
 - Run setup first. The other files check for .venv and will tell you to run setup if it is missing.
+- Each launcher activates .venv automatically before running its command.
 - Java is required for the MINOA desktop validator.
 - The Small/Medium/Large run is the faster demonstration run.
 - The all-instance run can take longer because it solves all Senior benchmark files.
