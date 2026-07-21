@@ -91,7 +91,7 @@ FINAL_ARCHIVE_ROWS = [
 
 def _load_results(path: Path) -> dict[str, Any]:
     if not path.exists():
-        if path == DEFAULT_RESULTS:
+        if path == DEFAULT_RESULTS or path.resolve() == (ROOT / DEFAULT_RESULTS).resolve():
             _write_default_results(path)
         if not path.exists():
             raise FileNotFoundError(f"Missing canonical result file: {path}")

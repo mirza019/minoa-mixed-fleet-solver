@@ -11,6 +11,7 @@ if str(ROOT / "scripts") not in sys.path:
     sys.path.insert(0, str(ROOT / "scripts"))
 
 import print_final_results_table
+import generate_lower_bound_figures
 import run_experiment
 import validate_pipeline_outputs
 
@@ -109,6 +110,38 @@ def test_validate_pipeline_outputs_reads_manifest_pairs(tmp_path: Path) -> None:
     assert validate_pipeline_outputs.pairs_from_manifest(manifest) == [
         (input_path, output_path)
     ]
+
+
+def test_validate_pipeline_outputs_missing_manifest_guides_user(tmp_path: Path) -> None:
+    missing = tmp_path / "outputs/minoa/all_multistart/pipeline_manifest.json"
+
+    try:
+        validate_pipeline_outputs.pairs_from_manifest(missing)
+    except SystemExit as exc:
+        message = str(exc)
+    else:
+        raise AssertionError("Expected SystemExit for missing manifest")
+
+    assert "Missing pipeline manifest" in message
+    assert "run_experiment.py --algorithm multistart --scope all" in message
+
+
+def test_lower_bound_figure_missing_csv_guides_user(tmp_path: Path, monkeypatch) -> None:
+    missing = tmp_path / "results/lower_bounds/all_instances_lower_bounds.csv"
+    monkeypatch.setattr(
+        "sys.argv",
+        ["generate_lower_bound_figures.py", "--csv", str(missing)],
+    )
+
+    try:
+        generate_lower_bound_figures.main()
+    except SystemExit as exc:
+        message = str(exc)
+    else:
+        raise AssertionError("Expected SystemExit for missing lower-bound CSV")
+
+    assert "Missing lower-bound CSV" in message
+    assert "run_lower_bounds.py" in message
 
 
 def test_run_experiment_creates_output_directory_and_reports_pairs(

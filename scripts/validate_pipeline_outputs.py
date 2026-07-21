@@ -29,6 +29,14 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def pairs_from_manifest(manifest_path: Path) -> list[tuple[Path, Path]]:
+    if not manifest_path.exists():
+        raise SystemExit(
+            f"Missing pipeline manifest: {manifest_path}\n\n"
+            "Generate it first with:\n"
+            "  .venv/bin/python scripts/run_experiment.py --algorithm multistart --scope all\n\n"
+            "For only Small, Medium, and Large, run:\n"
+            "  .venv/bin/python scripts/run_experiment.py --algorithm multistart --scope sml"
+        )
     data = json.loads(manifest_path.read_text(encoding="utf-8"))
     processed_by_instance = {
         str(record["instance"]): Path(record["processed"])
@@ -44,6 +52,14 @@ def pairs_from_manifest(manifest_path: Path) -> list[tuple[Path, Path]]:
         input_path = processed_by_instance.get(str(instance))
         if input_path is None:
             continue
+        if not input_path.exists() or not Path(str(output)).exists():
+            raise SystemExit(
+                "A manifest entry points to a missing input or output file:\n"
+                f"  input: {input_path}\n"
+                f"  output: {output}\n\n"
+                "Regenerate the pipeline outputs first with:\n"
+                "  .venv/bin/python scripts/run_experiment.py --algorithm multistart --scope all"
+            )
         pairs.append((input_path, Path(str(output))))
     if not pairs:
         raise ValueError(f"No input/output pairs found in {manifest_path}")

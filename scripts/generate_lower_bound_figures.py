@@ -40,6 +40,18 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main() -> None:
     args = build_parser().parse_args()
+    if not args.csv.exists():
+        raise SystemExit(
+            f"Missing lower-bound CSV: {args.csv}\n\n"
+            "Generate it first with:\n"
+            "  .venv/bin/python scripts/run_experiment.py --algorithm multistart --scope all\n"
+            "  .venv/bin/python scripts/run_lower_bounds.py \\\n"
+            "    --scope all \\\n"
+            "    --input-dir data/processed/minoa/all_multistart \\\n"
+            "    --archive-csv outputs/minoa/final_archive/final_results.csv \\\n"
+            "    --time-limit 180 \\\n"
+            "    --output-csv results/lower_bounds/all_instances_lower_bounds.csv"
+        )
     rows = read_rows(args.csv)
     rows = sync_upper_bounds_from_final_archive(rows, FINAL_RESULTS_CSV)
     args.out_dir.mkdir(parents=True, exist_ok=True)
