@@ -104,6 +104,39 @@ rm -rf outputs/minoa data/processed/minoa results/lower_bounds
 .venv/bin/python -m pytest
 ```
 
+## Double-Click Launchers
+
+For users who prefer not to type commands, the repository contains numbered
+launchers in separate operating-system folders. Open `README_RUN_FIRST.txt` and
+use the files in order:
+
+```text
+macOS folder:
+launchers/macos/01_setup.command
+-> launchers/macos/02_run_sml.command
+-> launchers/macos/03_run_all.command
+-> launchers/macos/04_print_final_table.command
+-> launchers/macos/05_validate_all_outputs.command
+-> launchers/macos/06_run_lower_bounds.command
+-> launchers/macos/07_generate_lower_bound_figures.command
+-> launchers/macos/08_run_tests.command
+
+Windows folder:
+launchers/windows/01_setup.bat
+-> launchers/windows/02_run_sml.bat
+-> launchers/windows/03_run_all.bat
+-> launchers/windows/04_print_final_table.bat
+-> launchers/windows/05_validate_all_outputs.bat
+-> launchers/windows/06_run_lower_bounds.bat
+-> launchers/windows/07_generate_lower_bound_figures.bat
+-> launchers/windows/08_run_tests.bat
+```
+
+The setup file creates `.venv` and installs the Python requirements. The run
+files check for `.venv`, Java, and the MINOA validator path before starting the
+experiment pipeline. If a file is opened out of order, it prints the required
+previous step instead of showing a Python traceback.
+
 `run_experiment.py` always means "run a fresh experiment". With `--scope all`,
 the command generates output JSON files, passes the generated input/output pairs
 through the validator inside the pipeline, and prints the resulting table.
