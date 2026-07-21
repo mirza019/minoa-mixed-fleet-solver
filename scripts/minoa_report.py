@@ -7,6 +7,18 @@ from pathlib import Path
 from minoa_lib.experiments.table import evaluate_many, markdown_table
 
 
+def missing_path_message(missing_paths: list[Path]) -> str:
+    formatted = "\n".join(f"  - {path}" for path in missing_paths)
+    return (
+        "Cannot build the report because these input/output files do not exist:\n"
+        f"{formatted}\n\n"
+        "Generate the corresponding outputs first. For example:\n"
+        "  .venv/bin/python scripts/run_experiment.py --algorithm multistart --scope sml\n\n"
+        "For all Senior instances, run:\n"
+        "  .venv/bin/python scripts/run_experiment.py --algorithm multistart --scope all"
+    )
+
+
 def parse_pair(text: str) -> tuple[Path, Path]:
     if ":" not in text:
         raise argparse.ArgumentTypeError("Use INPUT_JSON:OUTPUT_JSON")
@@ -28,6 +40,15 @@ def main() -> None:
         default=Path("tools/minoa/desktopValidator/desktopValidator/desktopValidator.jar"),
     )
     args = parser.parse_args()
+
+    missing_paths = [
+        path
+        for pair in args.pairs
+        for path in pair
+        if not path.exists()
+    ]
+    if missing_paths:
+        raise SystemExit(missing_path_message(missing_paths))
 
     rows = evaluate_many(args.pairs, args.validator)
     print(markdown_table(rows))

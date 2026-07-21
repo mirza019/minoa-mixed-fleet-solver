@@ -132,9 +132,36 @@ def input_output_pairs(args: argparse.Namespace) -> list[tuple[Path, Path | None
 
 def archive_input_output_pairs(args: argparse.Namespace) -> list[tuple[Path, Path | None]]:
     archive: dict[str, Path] = {}
+    missing_outputs: list[str] = []
+    if not args.archive_csv.exists():
+        raise SystemExit(
+            "Missing archive CSV: "
+            f"{args.archive_csv}\n\n"
+            "Generate it first with:\n"
+            "  .venv/bin/python scripts/run_experiment.py --algorithm multistart --scope all\n\n"
+            "That command writes the final archive CSV under outputs/minoa/final_archive/."
+        )
     with args.archive_csv.open(newline="", encoding="utf-8") as handle:
         for row in csv.DictReader(handle):
-            archive[normalize_name(row["instance"])] = Path(row["archived_output"])
+            instance = row["instance"]
+            raw_output = (row.get("archived_output") or "").strip()
+            if not raw_output:
+                missing_outputs.append(f"{instance}: archived_output is empty")
+                continue
+            output_path = Path(raw_output)
+            if not output_path.exists():
+                missing_outputs.append(f"{instance}: {output_path}")
+                continue
+            archive[normalize_name(instance)] = output_path
+    if missing_outputs:
+        formatted = "\n".join(f"  - {item}" for item in missing_outputs)
+        raise SystemExit(
+            "The archive CSV exists, but the output JSON schedules needed for "
+            "selected-timetable lower bounds are missing:\n"
+            f"{formatted}\n\n"
+            "Regenerate the schedules and archive with:\n"
+            "  .venv/bin/python scripts/run_experiment.py --algorithm multistart --scope all"
+        )
 
     if args.scope == "sml":
         input_paths = HEADLINE_INPUTS.values()

@@ -45,6 +45,18 @@ def test_final_results_table_terminal_output_is_aligned() -> None:
     assert "Small  162.44" in terminal
 
 
+def test_final_results_table_writes_compact_archive_csv(tmp_path: Path) -> None:
+    data = print_final_results_table._default_results_data()
+    archive_csv = tmp_path / "outputs/minoa/final_archive/final_results.csv"
+
+    print_final_results_table._write_default_archive_csv(data, archive_csv)
+
+    text = archive_csv.read_text(encoding="utf-8")
+    assert "instance,approach,valid,objective" in text
+    assert "Small,multi-start path-cover,True,162.442" in text
+    assert "Large,multi-start path-cover,True,1163.353" in text
+
+
 def test_run_experiment_multistart_all_runs_fresh_pipeline(monkeypatch) -> None:
     calls: list[list[str]] = []
 
@@ -68,9 +80,14 @@ def test_run_experiment_multistart_all_runs_fresh_pipeline(monkeypatch) -> None:
 
     run_experiment.run_all(args)
 
-    assert calls
+    assert len(calls) == 2
     assert "scripts/run_all_experiments.py" in calls[0]
     assert "--optimized-all" in calls[0]
+    assert "scripts/minoa_best_archive.py" in calls[1]
+    assert "--candidate-dir" in calls[1]
+    assert "outputs/minoa/all_multistart" in calls[1]
+    assert "--output-dir" in calls[1]
+    assert "outputs/minoa/final_archive" in calls[1]
     assert "scripts/print_final_results_table.py" not in calls[0]
 
 

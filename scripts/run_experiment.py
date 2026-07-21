@@ -144,6 +144,7 @@ def run_all(args: argparse.Namespace) -> None:
     if args.algorithm == "multistart":
         output_dir = args.output_dir or Path("outputs/minoa/all_multistart")
         processed_dir = args.processed_dir or Path("data/processed/minoa/all_multistart")
+        archive_dir = Path("outputs/minoa/final_archive")
         command = [
             sys.executable,
             "scripts/run_all_experiments.py",
@@ -161,6 +162,19 @@ def run_all(args: argparse.Namespace) -> None:
         else:
             command.append("--optimized-all")
         subprocess.run(command, cwd=ROOT, check=True)
+        archive_command = [
+            sys.executable,
+            "scripts/minoa_best_archive.py",
+            "--input-dir",
+            str(processed_dir),
+            "--candidate-dir",
+            str(output_dir),
+            "--output-dir",
+            str(archive_dir),
+            "--validator",
+            str(args.validator),
+        ]
+        subprocess.run(archive_command, cwd=ROOT, check=True)
         return
 
     algorithm = ALGORITHMS[args.algorithm]

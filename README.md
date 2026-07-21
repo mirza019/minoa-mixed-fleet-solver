@@ -14,14 +14,15 @@ the final output with an external feasibility and objective audit.
 
 ```text
 scripts/
+  run_experiment.py            Main one-command runner with --algorithm and --scope
+  print_final_results_table.py Recreates/checks the final thesis archive table
   minoa_solver.py              Single-instance solver CLI
   minoa_optimize.py            Multi-start search for stronger headline results
   minoa_pipeline.py            Normalizes raw inputs, solves, validates, reports
   minoa_report.py              External-validator table reporter
   validate_pipeline_outputs.py Revalidates all outputs listed in a manifest
-  run_experiment.py            One-command runner with --algorithm
-  run_sml_experiments.py       Small/Medium/Large experiment runner
-  run_all_experiments.py       All-instance experiment runner
+  run_sml_experiments.py       Legacy Small/Medium/Large convenience runner
+  run_all_experiments.py       Legacy all-instance convenience runner
   run_lower_bounds.py          Global and selected-timetable bound reporter
   generate_lower_bound_figures.py  Lower-bound plots from CSV results
   minoa_lib/                   Solver modules
@@ -89,16 +90,15 @@ python3 -m pip install -r requirements.txt
 # Optional: remove old generated files before a fresh run.
 rm -rf outputs/minoa data/processed/minoa results/lower_bounds
 
+# Run the final method on Small, Medium, and Large.
+.venv/bin/python scripts/run_experiment.py --algorithm multistart --scope sml
+
 # Run the final method on all Senior instances.
-# The pipeline generates output JSON files, runs the validator, and prints a table.
 .venv/bin/python scripts/run_experiment.py --algorithm multistart --scope all
 
 # Print/check the retained final no-regression archive table.
 .venv/bin/python scripts/print_final_results_table.py \
   --summary-file outputs/minoa/final_pipeline/final_results_summary.md
-
-# Generate and audit Small, Medium, and Large output JSON files.
-.venv/bin/python scripts/run_experiment.py --algorithm multistart --scope sml
 
 # Run the unit tests.
 .venv/bin/python -m pytest
@@ -112,76 +112,59 @@ slightly different feasible schedule than the retained final archive.
 
 `print_final_results_table.py` is a separate result-check command. It creates or
 checks `results/final_validated_results.json`, prints the retained final archive
-table, and writes the same Markdown summary to
-`outputs/minoa/final_pipeline/final_results_summary.md`.
+table, writes the same Markdown summary to
+`outputs/minoa/final_pipeline/final_results_summary.md`, and creates the compact
+archive CSV under `outputs/minoa/final_archive/` if that CSV is absent.
 
-## Run Small, Medium, and Large
+## Run Experiments
 
-This command runs the main method on Small, Medium, and Large. It validates the
-outputs and prints a table.
+Use the same command pattern for all implemented algorithms:
 
 ```bash
-.venv/bin/python scripts/run_sml_experiments.py
+.venv/bin/python scripts/run_experiment.py --algorithm <name> --scope <instances>
 ```
 
-The same run can also be started through the algorithm-selecting wrapper:
+The four algorithm names are:
+
+```text
+greedy       constructive greedy baseline
+pathcover    unweighted path-cover method
+weighted     weighted path-cover method
+multistart   final multi-start weighted path-cover method
+```
+
+The instance scope can be:
+
+```text
+sml   Small, Medium, and Large only
+all   all 12 MINOA Senior instances
+```
+
+Example:
 
 ```bash
 .venv/bin/python scripts/run_experiment.py --algorithm multistart --scope sml
 ```
 
-Other available algorithm names are:
+This command generates output JSON files, runs the validator inside the
+pipeline, and prints the result table.
 
-```text
-greedy, pathcover, weighted, multistart, ice-greedy, no-charge
-```
-
-Run one headline instance only:
+To run one headline instance only, add `--only`:
 
 ```bash
-.venv/bin/python scripts/run_sml_experiments.py --only Small
-.venv/bin/python scripts/run_sml_experiments.py --only Medium
-.venv/bin/python scripts/run_sml_experiments.py --only Large
+.venv/bin/python scripts/run_experiment.py --algorithm multistart --scope sml --only Small
 ```
 
-Quick test:
+Run all four algorithms on Small, Medium, and Large:
 
 ```bash
-.venv/bin/python scripts/run_sml_experiments.py --quick
+.venv/bin/python scripts/run_experiment.py --algorithm greedy --scope sml
+.venv/bin/python scripts/run_experiment.py --algorithm pathcover --scope sml
+.venv/bin/python scripts/run_experiment.py --algorithm weighted --scope sml
+.venv/bin/python scripts/run_experiment.py --algorithm multistart --scope sml
 ```
 
-## Run All Senior Instances
-
-These commands run all available Senior instances through the direct pipeline.
-The pipeline normalizes working input copies when needed, solves each instance,
-runs the validator for each generated output, and prints one result table.
-
-```bash
-.venv/bin/python scripts/run_all_experiments.py
-```
-
-Quick all-instance test:
-
-```bash
-.venv/bin/python scripts/run_all_experiments.py --quick-headliners
-```
-
-The all-instance report is written to:
-
-```text
-outputs/minoa/all_instances/all_instances_report.md
-```
-
-To rebuild all Senior instances with the final method, use:
-
-```bash
-.venv/bin/python scripts/run_experiment.py --algorithm multistart --scope all
-```
-
-This creates fresh output JSON files under `outputs/minoa/all_multistart/`,
-creates processed working inputs under `data/processed/minoa/all_multistart/`,
-runs the validator inside the pipeline, and prints the fresh all-instance result
-table. The same wrapper can run the other implemented algorithms:
+Run all four algorithms on all Senior instances:
 
 ```bash
 .venv/bin/python scripts/run_experiment.py --algorithm greedy --scope all
@@ -190,20 +173,16 @@ table. The same wrapper can run the other implemented algorithms:
 .venv/bin/python scripts/run_experiment.py --algorithm multistart --scope all
 ```
 
-Use `--scope sml` to run only Small, Medium, and Large:
+Fresh all-instance runs create output JSON files under
+`outputs/minoa/all_<algorithm>/`, create processed working inputs under
+`data/processed/minoa/all_<algorithm>/`, run the validator inside the pipeline,
+and print the fresh result table. For the final method, the default output
+folder is `outputs/minoa/all_multistart/`.
 
-```bash
-.venv/bin/python scripts/run_experiment.py --algorithm weighted --scope sml
-.venv/bin/python scripts/run_experiment.py --algorithm multistart --scope sml
-```
+Because the multi-start search is bounded, a fresh direct run can produce a
+slightly different feasible schedule than the retained final archive. For the
+retained final no-regression archive summary, use:
 
-For a single headline instance, add `--only`:
-
-```bash
-.venv/bin/python scripts/run_experiment.py --algorithm multistart --scope sml --only Small
-```
-
-For the retained final no-regression archive summary, use:
 
 ```bash
 .venv/bin/python scripts/print_final_results_table.py \
@@ -211,14 +190,24 @@ For the retained final no-regression archive summary, use:
 ```
 
 This creates/checks `results/final_validated_results.json`, writes
-`outputs/minoa/final_pipeline/final_results_summary.md`, and prints the retained
-final archive table. The retained all-instance archive result is total validated
-cost `10000.48` and `126` used vehicle blocks.
+`outputs/minoa/final_pipeline/final_results_summary.md`, creates the compact
+archive CSV under `outputs/minoa/final_archive/` if needed, and prints the
+retained final archive table. The retained all-instance archive result is total
+validated cost `10000.48` and `126` used vehicle blocks.
 
 ## Validate Existing Input/Output Pairs
 
-Use `minoa_report.py` if output JSON files already exist and you only want to
-check selected input/output pairs with the validator and print a table.
+The experiment runner already generates output JSON files, runs the validator
+inside the pipeline, and prints the result table. For a fresh clone, generate
+the Small/Medium/Large outputs first:
+
+```bash
+.venv/bin/python scripts/run_experiment.py --algorithm multistart --scope sml
+```
+
+Use `minoa_report.py` only after those output JSON files exist and you want to
+recheck selected input/output pairs with the validator and print the table
+again.
 
 ```bash
 .venv/bin/python scripts/minoa_report.py \
@@ -263,12 +252,20 @@ Run the lower-bound report for Small, Medium, and Large:
   --output-csv results/lower_bounds/sml_lower_bounds.csv
 ```
 
-Run it for all senior instances and regenerate the thesis figures:
+For all Senior instances, first run the final method. This creates generated
+outputs, processed working inputs, and
+`outputs/minoa/final_archive/final_results.csv`.
+
+```bash
+.venv/bin/python scripts/run_experiment.py --algorithm multistart --scope all
+```
+
+Then run the lower-bound report and regenerate the thesis figures:
 
 ```bash
 .venv/bin/python scripts/run_lower_bounds.py \
   --scope all \
-  --input-dir data/processed/minoa/final_adaptive_bounded \
+  --input-dir data/processed/minoa/all_multistart \
   --archive-csv outputs/minoa/final_archive/final_results.csv \
   --time-limit 180 \
   --output-csv results/lower_bounds/all_instances_lower_bounds.csv
@@ -284,7 +281,7 @@ Use the commands in this section when you only want to regenerate the numerical
 graphs used in the thesis result chapter. These commands do not regenerate the
 conceptual workflow diagrams or method flowcharts.
 
-First make sure the final verified archive exists:
+First make sure the compact final archive table exists:
 
 ```bash
 .venv/bin/python scripts/print_final_results_table.py \
@@ -292,7 +289,8 @@ First make sure the final verified archive exists:
 ```
 
 This command prints the canonical final no-regression archive table used in the
-thesis, which reports total validated cost `10000.48` and `126` vehicles.
+thesis, reports total validated cost `10000.48` and `126` vehicles, and creates
+`outputs/minoa/final_archive/final_results.csv` if it is absent.
 
 Then regenerate the result graphs based on the final validated archive:
 
@@ -311,9 +309,11 @@ If the lower-bound graphs are also needed, first refresh the lower-bound CSV and
 then regenerate the lower-bound figures:
 
 ```bash
+.venv/bin/python scripts/run_experiment.py --algorithm multistart --scope all
+
 .venv/bin/python scripts/run_lower_bounds.py \
   --scope all \
-  --input-dir data/processed/minoa/final_adaptive_bounded \
+  --input-dir data/processed/minoa/all_multistart \
   --archive-csv outputs/minoa/final_archive/final_results.csv \
   --time-limit 180 \
   --output-csv results/lower_bounds/all_instances_lower_bounds.csv

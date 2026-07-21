@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import csv
 import json
 from pathlib import Path
 import sys
@@ -12,6 +13,7 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_RESULTS = Path("results/final_validated_results.json")
+DEFAULT_ARCHIVE_CSV = Path("outputs/minoa/final_archive/final_results.csv")
 
 EXPECTED_HEADLINE = {
     "Small": {"validated_cost": 162.44, "vehicles": 2},
@@ -45,6 +47,31 @@ DETAIL_COLUMNS = [
     ("Break min", "break_min"),
     ("Charge min", "charge_min"),
 ]
+ARCHIVE_COLUMNS = [
+    "instance",
+    "approach",
+    "valid",
+    "objective",
+    "fixed_cost",
+    "break_cost",
+    "pull_cost",
+    "co2_cost",
+    "official_residual",
+    "global_lower_bound",
+    "global_bound_gap_ub",
+    "selected_tt_lower_bound",
+    "selected_tt_bound_gap_ub",
+    "total_blocks",
+    "ev_blocks",
+    "ice_blocks",
+    "ev_share",
+    "selected_trips",
+    "deadhead_min",
+    "break_min",
+    "charging_min",
+    "source_output",
+    "archived_output",
+]
 
 FINAL_ARCHIVE_ROWS = [
     ("Small", "multi-start path-cover", 162.442, 154.00, 7.69, 0.25, 0.50, 2, 0, 2, 0.00, 48, 42.00, 240.00, 0.00),
@@ -76,6 +103,44 @@ def _write_default_results(path: Path) -> None:
     """Create the machine-readable final archive table used by the thesis."""
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(_default_results_data(), indent=2) + "\n", encoding="utf-8")
+
+
+def _write_default_archive_csv(data: dict[str, Any], path: Path) -> None:
+    """Create a compact final archive CSV for plotting when no run archive exists."""
+    if path.exists():
+        return
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.DictWriter(handle, fieldnames=ARCHIVE_COLUMNS)
+        writer.writeheader()
+        for row in _detail_rows(data):
+            writer.writerow(
+                {
+                    "instance": row["instance"],
+                    "approach": row["approach"],
+                    "valid": row["valid"],
+                    "objective": row["cost"],
+                    "fixed_cost": row["fixed_cost"],
+                    "break_cost": row["break_cost"],
+                    "pull_cost": row["pull_cost"],
+                    "co2_cost": row["co2_cost"],
+                    "official_residual": "",
+                    "global_lower_bound": "",
+                    "global_bound_gap_ub": "",
+                    "selected_tt_lower_bound": "",
+                    "selected_tt_bound_gap_ub": "",
+                    "total_blocks": row["vehicles"],
+                    "ev_blocks": row["ev_vehicles"],
+                    "ice_blocks": row["ice_vehicles"],
+                    "ev_share": row["ev_share_percent"],
+                    "selected_trips": row["trips"],
+                    "deadhead_min": row["deadhead_min"],
+                    "break_min": row["break_min"],
+                    "charging_min": row["charge_min"],
+                    "source_output": "",
+                    "archived_output": "",
+                }
+            )
 
 
 def _default_results_data() -> dict[str, Any]:
@@ -453,6 +518,7 @@ def main() -> int:
 
     try:
         data = _load_results(args.results)
+        _write_default_archive_csv(data, DEFAULT_ARCHIVE_CSV)
         if args.instance:
             markdown, all_passed = build_instance_table(data, args.instance)
         else:
