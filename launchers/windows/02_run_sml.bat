@@ -6,18 +6,10 @@ echo MINOA Small/Medium/Large experiment
 echo ===================================
 echo.
 
-if not exist python (
+set "VENV_PYTHON=.venv\Scripts\python.exe"
+if not exist "%VENV_PYTHON%" (
   echo Virtual environment not found.
   echo Please run 01_setup.bat first.
-  echo.
-  pause
-  exit /b 1
-)
-
-echo Activating virtual environment ...
-call ".venv\Scripts\activate.bat"
-if errorlevel 1 (
-  echo Virtual environment activation failed.
   echo.
   pause
   exit /b 1
@@ -41,7 +33,7 @@ if not exist "tools\minoa\desktopValidator\desktopValidator\desktopValidator.jar
 )
 
 echo Running final method on Small, Medium, and Large ...
-python scripts\run_experiment.py --algorithm multistart --scope sml
+"%VENV_PYTHON%" scripts\run_experiment.py --algorithm multistart --scope sml
 set "STATUS=%ERRORLEVEL%"
 
 echo.

@@ -6,18 +6,10 @@ echo MINOA lower-bound diagnostics
 echo =============================
 echo.
 
-if not exist python (
+set "VENV_PYTHON=.venv\Scripts\python.exe"
+if not exist "%VENV_PYTHON%" (
   echo Virtual environment not found.
   echo Please run 01_setup.bat first.
-  echo.
-  pause
-  exit /b 1
-)
-
-echo Activating virtual environment ...
-call ".venv\Scripts\activate.bat"
-if errorlevel 1 (
-  echo Virtual environment activation failed.
   echo.
   pause
   exit /b 1
@@ -41,7 +33,7 @@ if not exist "outputs\minoa\final_archive\final_results.csv" (
 
 echo Computing lower-bound diagnostics for all Senior instances ...
 echo This can take several minutes depending on the machine.
-python scripts\run_lower_bounds.py ^
+"%VENV_PYTHON%" scripts\run_lower_bounds.py ^
   --scope all ^
   --input-dir data\processed\minoa\all_multistart ^
   --archive-csv outputs\minoa\final_archive\final_results.csv ^

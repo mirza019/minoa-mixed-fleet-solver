@@ -6,7 +6,8 @@ echo MINOA Python test suite
 echo =======================
 echo.
 
-if not exist python (
+set "VENV_PYTHON=.venv\Scripts\python.exe"
+if not exist "%VENV_PYTHON%" (
   echo Virtual environment not found.
   echo Please run 01_setup.bat first.
   echo.
@@ -14,17 +15,8 @@ if not exist python (
   exit /b 1
 )
 
-echo Activating virtual environment ...
-call ".venv\Scripts\activate.bat"
-if errorlevel 1 (
-  echo Virtual environment activation failed.
-  echo.
-  pause
-  exit /b 1
-)
-
 echo Running pytest ...
-python -m pytest -q
+"%VENV_PYTHON%" -m pytest -q
 set "STATUS=%ERRORLEVEL%"
 
 echo.

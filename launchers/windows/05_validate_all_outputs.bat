@@ -6,18 +6,10 @@ echo MINOA all-output validation audit
 echo =================================
 echo.
 
-if not exist python (
+set "VENV_PYTHON=.venv\Scripts\python.exe"
+if not exist "%VENV_PYTHON%" (
   echo Virtual environment not found.
   echo Please run 01_setup.bat first.
-  echo.
-  pause
-  exit /b 1
-)
-
-echo Activating virtual environment ...
-call ".venv\Scripts\activate.bat"
-if errorlevel 1 (
-  echo Virtual environment activation failed.
   echo.
   pause
   exit /b 1
@@ -41,7 +33,7 @@ if errorlevel 1 (
 )
 
 echo Re-validating all generated all-instance outputs ...
-python scripts\validate_pipeline_outputs.py --manifest outputs\minoa\all_multistart\pipeline_manifest.json
+"%VENV_PYTHON%" scripts\validate_pipeline_outputs.py --manifest outputs\minoa\all_multistart\pipeline_manifest.json
 set "STATUS=%ERRORLEVEL%"
 
 echo.

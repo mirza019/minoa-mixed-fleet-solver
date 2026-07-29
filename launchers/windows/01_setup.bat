@@ -40,17 +40,10 @@ if not exist ".venv\Scripts\python.exe" (
   exit /b 1
 )
 
-echo Activating virtual environment ...
-call ".venv\Scripts\activate.bat"
-if errorlevel 1 (
-  echo Virtual environment activation failed.
-  echo.
-  pause
-  exit /b 1
-)
+set "VENV_PYTHON=.venv\Scripts\python.exe"
 
 echo Installing Python requirements ...
-python -m pip install --upgrade pip
+"%VENV_PYTHON%" -m pip install --upgrade pip
 if errorlevel 1 (
   echo pip upgrade failed.
   echo.
@@ -58,7 +51,7 @@ if errorlevel 1 (
   exit /b 1
 )
 
-python -m pip install -r requirements.txt
+"%VENV_PYTHON%" -m pip install -r requirements.txt
 if errorlevel 1 (
   echo Requirement installation failed.
   echo.
@@ -68,7 +61,7 @@ if errorlevel 1 (
 
 echo.
 echo Checking installed packages, Java, validator, and input data ...
-python scripts\check_environment.py --require-java --require-validator --require-data
+"%VENV_PYTHON%" scripts\check_environment.py --require-java --require-validator --require-data
 if errorlevel 1 (
   echo.
   echo Setup did not pass the final environment check.

@@ -6,18 +6,10 @@ echo MINOA lower-bound figure generation
 echo ===================================
 echo.
 
-if not exist python (
+set "VENV_PYTHON=.venv\Scripts\python.exe"
+if not exist "%VENV_PYTHON%" (
   echo Virtual environment not found.
   echo Please run 01_setup.bat first.
-  echo.
-  pause
-  exit /b 1
-)
-
-echo Activating virtual environment ...
-call ".venv\Scripts\activate.bat"
-if errorlevel 1 (
-  echo Virtual environment activation failed.
   echo.
   pause
   exit /b 1
@@ -32,7 +24,7 @@ if not exist "results\lower_bounds\all_instances_lower_bounds.csv" (
 )
 
 echo Generating lower-bound figures ...
-python scripts\generate_lower_bound_figures.py ^
+"%VENV_PYTHON%" scripts\generate_lower_bound_figures.py ^
   --csv results\lower_bounds\all_instances_lower_bounds.csv ^
   --out-dir FAU_Thesis_temp\figures
 set "STATUS=%ERRORLEVEL%"

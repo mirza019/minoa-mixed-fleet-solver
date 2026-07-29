@@ -4,8 +4,8 @@ MINOA Windows double-click launchers
 Double-click the files in this exact order:
 
 1. 01_setup.bat
-   Creates .venv, installs all Python packages from requirements.txt, activates
-   the environment, and checks Python, packages, Java, validator, and raw data.
+   Creates .venv, installs all Python packages from requirements.txt, and
+   checks Python, packages, Java, validator, and raw data.
 
 2. 02_run_sml.bat
    Runs the final method for Small, Medium, and Large.
@@ -29,4 +29,5 @@ Double-click the files in this exact order:
    Runs the Python test suite.
 
 If a file is opened too early, it prints the required previous step.
-Each launcher activates .venv automatically before running its command.
+Each launcher uses .venv\Scripts\python.exe directly. Activation from the setup
+window does not need to persist after that window is closed.
